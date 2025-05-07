@@ -50,18 +50,20 @@ services:
     volumes:
       - ./services/auth_service:/app
 
-  # payment-service:
-  #   build:
-  #     context: ./services/payment_service
-  #   ports:
-  #     - "8002:8000"
-  #   environment:
-  #     DB_NAME: payment_db
-  #     DB_USER: postgres
-  #     DB_PASSWORD: postgres
-  #     DB_HOST: payment-db
-  #   depends_on:
-  #     - payment-db
+  payment-service:
+    build:
+      context: ./services/payment_service
+    ports:
+      - "8002:8000"
+    environment:
+      DB_NAME: payment_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: payment-db
+    depends_on:
+      - payment-db
+    volumes:
+      - ./services/payment_service:/app
 
   visit-service:
     build:
@@ -75,6 +77,8 @@ services:
       DB_HOST: visit-db
     depends_on:
       - visit-db
+    volumes:
+      - ./services/visit_service:/app
 
   email-service:
     build:
@@ -88,12 +92,14 @@ services:
       DB_HOST: email-db
     depends_on:
       - email-db
+    volumes:
+      - ./services/email_service:/app
 
-  # rabbitmq:
-  #   image: rabbitmq:3-management
-  #   ports:
-  #     - "5672:5672"   # MQTT / AMQP
-  #     - "15672:15672" # Web UI
+  rabbitmq:
+     image: rabbitmq:3-management
+     ports:
+       - "5672:5672"   # MQTT / AMQP
+       - "15672:15672" # Web UI
 
 volumes:
   auth_data:

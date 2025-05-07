@@ -40,7 +40,8 @@ INSTALLED_APPS = [
         # Aplikacje zewnętrzne
     'rest_framework',  # Dodaj DRF
     # Twoje aplikacje
-    'authapp'  # Aplikacja do autentykacji
+    'authapp', # Aplikacja do autentykacji
+    'drf_spectacular'
 ]
 
 MIDDLEWARE = [
@@ -127,3 +128,13 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Auth Service API',
+    'DESCRIPTION': 'API do logowania i rejestracji',
+    'VERSION': '1.0.0',
+}
