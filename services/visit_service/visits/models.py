@@ -8,7 +8,7 @@ class Doctor(models.Model):
 
 class TimeSlot(models.Model):
     id = models.CharField(primary_key=True, max_length=100)
-    doctor =  models.ForeignKey(Doctor, related_name='time_slots', on_delete=models.CASCADE)
+    doctor =  models.ForeignKey(Doctor, on_delete=models.CASCADE)
     start = models.DateTimeField()
     end = models.DateTimeField()
     is_available = models.BooleanField(default=True)
