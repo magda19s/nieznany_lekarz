@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'visits',
     'rest_framework',
     'drf_spectacular',
+    'drf_yasg'
 ]
 
 MIDDLEWARE = [
