@@ -16,8 +16,8 @@ import requests
 
 
 @extend_schema(
-    summary="Pobierz dostępne time sloty",
-    description="Zwraca wszystkie dostępne przedziały czasowe dla wszystkich lekarzy.",
+    summary="Retrieve available time slots",
+    description="Returns all available time slots for all doctors.",
     responses=TimeSlotSerializer(many=True),
 )
 class TimeSlotListView(generics.ListAPIView):
@@ -26,8 +26,8 @@ class TimeSlotListView(generics.ListAPIView):
 
 
 @extend_schema(
-    summary="Utwórz nową wizytę",
-    description="Tworzy nową wizytę dla pacjenta.",
+    summary="Create a new visit",
+    description="Creates a new visit for a patient.",
     responses={201: VisitSerializer},
     )
 class VisitCreateView(generics.GenericAPIView):
@@ -81,13 +81,13 @@ class VisitCreateView(generics.GenericAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
-extend_schema(
-    summary="Pobierz wizyty pacjenta",
-    description="Zwraca listę wizyt przypisanych do pacjenta na podstawie jego ID.",
+@extend_schema(
+    summary="Retrieve patient's visits",
+    description="Returns a list of visits assigned to a patient based on their ID.",
     parameters=[
         OpenApiParameter(
             name='patient_id',
-            description='ID pacjenta, którego wizyty chcesz pobrać',
+            description="ID of the patient whose visits you want to retrieve",
             required=True,
             type=str,
             location=OpenApiParameter.PATH,
@@ -103,12 +103,12 @@ class VisitByPatientView(generics.ListAPIView):
         return Visit.objects.filter(patient_id=patient_id)
 
 @extend_schema(
-    summary="Pobierz wizyty lekarza",
-    description="Zwraca listę wizyt przypisanych do lekarza na podstawie jego ID.",
+    summary="Retrieve doctor's visits",
+    description="Returns a list of visits assigned to a doctor based on their ID.",
     parameters=[
         OpenApiParameter(
             name='doctor_id',
-            description='ID lekarza, którego wizyty chcesz pobrać',
+            description="ID of the doctor whose visits you want to retrieve",
             required=True,
             type=str,
             location=OpenApiParameter.PATH,
@@ -124,29 +124,30 @@ class VisitByDoctorView(generics.ListAPIView):
         return Visit.objects.filter(doctor__doctor_id=doctor_id)
     
 @extend_schema(
-    summary="Aktualizuj notatki wizyty",
-    description="Pozwala lekarzowi zaktualizować notatki dla wybranej wizyty.",
+    summary="Update visit notes",
+    description="Allows the doctor to update notes for a selected visit.",
     parameters=[
         OpenApiParameter(
             name='visit_id',
-            description='ID wizyty',
+            description='ID of the visit',
             required=True,
             type=str,
             location=OpenApiParameter.PATH,
         ),
         OpenApiParameter(
             name='doctor_id',
-            description='ID lekarza',
+            description='ID of the doctor',
             required=True,
             type=str,
             location=OpenApiParameter.PATH,
         )
     ],
     request=VisitNotesUpdateSerializer,
-     responses={
+    responses={
         200: VisitSerializer,
         403: {"detail": "Forbidden"},
-        404: {"detail": "Visit not found"},}
+        404: {"detail": "Visit not found"},
+    }
 )
 class UpdateVisitNotesView(APIView):
 
