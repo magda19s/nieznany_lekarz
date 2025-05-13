@@ -2,4 +2,4 @@ Django>=4.2
 psycopg2-binary>=2.9
 drf-spectacular
 drf-yasg
-
+requests>=2.31

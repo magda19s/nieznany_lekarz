@@ -21,4 +21,7 @@ class VisitSerializer(serializers.ModelSerializer):
     time_slot  = TimeSlotSerializer()
     class Meta:
         model = Visit
-        fields = ['id', 'doctor', 'patient_id', 'time_slot', 'notes']
+        fields = ['id', 'doctor', 'patient_id', 'time_slot', 'status', 'notes']
+
+class VisitNotesUpdateSerializer(serializers.Serializer):
+    notes = serializers.CharField()
