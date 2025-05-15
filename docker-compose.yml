@@ -1,123 +1,123 @@
 services:
-  auth-db:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: auth_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - auth_data:/var/lib/postgresql/data
-    networks:
-      - app-network
+  # auth-db:
+  #   image: postgres:15
+  #   environment:
+  #     POSTGRES_DB: auth_db
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #   volumes:
+  #     - auth_data:/var/lib/postgresql/data
+  #   networks:
+  #     - app-network
 
-  payment-db:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: payment_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - payment_data:/var/lib/postgresql/data
-    networks:
-      - app-network
+  # payment-db:
+  #   image: postgres:15
+  #   environment:
+  #     POSTGRES_DB: payment_db
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #   volumes:
+  #     - payment_data:/var/lib/postgresql/data
+  #   networks:
+  #     - app-network
 
-  visit-db:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: visit_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - visit_data:/var/lib/postgresql/data
-    networks:
-      - app-network
+  # visit-db:
+  #   image: postgres:15
+  #   environment:
+  #     POSTGRES_DB: visit_db
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #   volumes:
+  #     - visit_data:/var/lib/postgresql/data
+  #   networks:
+  #     - app-network
 
-  email-db:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: email_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    volumes:
-      - email_data:/var/lib/postgresql/data
-    networks:
-      - app-network
+  # email-db:
+  #   image: postgres:15
+  #   environment:
+  #     POSTGRES_DB: email_db
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #   volumes:
+  #     - email_data:/var/lib/postgresql/data
+  #   networks:
+  #     - app-network
 
-  auth-service:
-    build:
-      context: ./services/auth_service
-    ports:
-      - "8001:8000"
-    environment:
-      DB_NAME: auth_db
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_HOST: auth-db
-    depends_on:
-      - auth-db
-    volumes:
-      - ./services/auth_service:/app
-    networks:
-      - app-network
+  # auth-service:
+  #   build:
+  #     context: ./services/auth_service
+  #   ports:
+  #     - "8001:8000"
+  #   environment:
+  #     DB_NAME: auth_db
+  #     DB_USER: postgres
+  #     DB_PASSWORD: postgres
+  #     DB_HOST: auth-db
+  #   depends_on:
+  #     - auth-db
+  #   volumes:
+  #     - ./services/auth_service:/app
+  #   networks:
+  #     - app-network
 
-  payment-service:
-    build:
-      context: ./services/payment_service
-    ports:
-      - "8002:8000"
-    environment:
-      DB_NAME: payment_db
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_HOST: payment-db
-    depends_on:
-      - payment-db
-    volumes:
-      - ./services/payment_service:/app
-    networks:
-      - app-network
+  # payment-service:
+  #   build:
+  #     context: ./services/payment_service
+  #   ports:
+  #     - "8002:8000"
+  #   environment:
+  #     DB_NAME: payment_db
+  #     DB_USER: postgres
+  #     DB_PASSWORD: postgres
+  #     DB_HOST: payment-db
+  #   depends_on:
+  #     - payment-db
+  #   volumes:
+  #     - ./services/payment_service:/app
+  #   networks:
+  #     - app-network
 
-  visit-service:
-    build:
-      context: ./services/visit_service
-    ports:
-      - "8003:8000"
-    environment:
-      DB_NAME: visit_db
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_HOST: visit-db
-    depends_on:
-      - visit-db
-    volumes:
-      - ./services/visit_service:/app
-    networks:
-      - app-network
+  # visit-service:
+  #   build:
+  #     context: ./services/visit_service
+  #   ports:
+  #     - "8003:8000"
+  #   environment:
+  #     DB_NAME: visit_db
+  #     DB_USER: postgres
+  #     DB_PASSWORD: postgres
+  #     DB_HOST: visit-db
+  #   depends_on:
+  #     - visit-db
+  #   volumes:
+  #     - ./services/visit_service:/app
+  #   networks:
+  #     - app-network
 
-  email-service:
-    build:
-      context: ./services/email_service
-    ports:
-      - "8004:8000"
-    environment:
-      DB_NAME: email_db
-      DB_USER: postgres
-      DB_PASSWORD: postgres
-      DB_HOST: email-db
-    depends_on:
-      - email-db
-    volumes:
-      - ./services/email_service:/app
-    networks:
-      - app-network
+  # email-service:
+  #   build:
+  #     context: ./services/email_service
+  #   ports:
+  #     - "8004:8000"
+  #   environment:
+  #     DB_NAME: email_db
+  #     DB_USER: postgres
+  #     DB_PASSWORD: postgres
+  #     DB_HOST: email-db
+  #   depends_on:
+  #     - email-db
+  #   volumes:
+  #     - ./services/email_service:/app
+  #   networks:
+  #     - app-network
 
-  rabbitmq:
-    image: rabbitmq:3-management
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    networks:
-      - app-network
+  # rabbitmq:
+  #   image: rabbitmq:3-management
+  #   ports:
+  #     - "5672:5672"
+  #     - "15672:15672"
+  #   networks:
+  #     - app-network
 
   frontend:
     container_name: frontend_app
@@ -136,11 +136,11 @@ services:
     networks:
       - app-network
 
-volumes:
-  auth_data:
-  payment_data:
-  visit_data:
-  email_data:
+# volumes:
+#   auth_data:
+#   payment_data:
+#   visit_data:
+#   email_data:
 
 networks:
   app-network:

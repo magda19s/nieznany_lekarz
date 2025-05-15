@@ -34,10 +34,10 @@ export default function HomePage() {
             alt="Doctors"
             className="z-1 h-full rounded-4xl shadow-lg"
           />
-          <div className="absolute top-4 left-4 bg-white p-2 rounded shadow text-sm text-green-700 font-medium">
+          <div className="absolute top-4 left-4 bg-white p-2 rounded-xl shadow text-sm text-green-700 font-medium">
             1520+ Active Clients
           </div>
-          <div className="absolute bottom-4 right-4 bg-white p-2 rounded shadow text-sm text-green-700">
+          <div className="absolute bottom-4 right-4 bg-white p-2 rounded-xl shadow text-sm text-green-700">
             ✓ 20% off for new users<br />
             ✓ Expert Doctors
           </div>
