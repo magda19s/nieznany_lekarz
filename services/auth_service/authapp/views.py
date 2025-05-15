@@ -29,12 +29,12 @@ class GoogleAuthView(APIView):
         }, status=status.HTTP_200_OK)
 
 @extend_schema(
-    summary="Sprawdź, czy pacjent istnieje",
-    description="Zwraca `true`, jeśli użytkownik o podanym ID istnieje i ma rolę 'pacjent', w przeciwnym razie `false`.",
+    summary="Check if patient exists",
+    description="Returns true if a user with the given ID exists and has the role 'patient'; otherwise, returns false.",
     parameters=[
         OpenApiParameter(
             name='patient_id',
-            description='ID pacjenta do sprawdzenia',
+            description='Verify patient existence',
             required=True,
             type=str,
             location=OpenApiParameter.PATH,
