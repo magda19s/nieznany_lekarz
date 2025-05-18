@@ -1,5 +1,4 @@
 #!/bin/sh
-
 echo "Running makemigrations..."
 python manage.py makemigrations --noinput
 
