@@ -4,15 +4,15 @@ from .models import TimeSlot,Visit
 from .serializers import TimeSlotSerializer, VisitCreateSerializer, VisitSerializer, VisitNotesUpdateSerializer
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiTypes
 from rest_framework.views import APIView
-from drf_yasg.utils import swagger_auto_schema
-from drf_yasg import openapi
-from rest_framework.decorators import api_view, parser_classes
-from rest_framework.parsers import FormParser
-from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
 import uuid
 from rest_framework import status
 import requests
+from django.conf import settings
+from .utils.rabbitmq_publisher import publish_visit_booked_event
+from rest_framework.permissions import AllowAny
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+
 
 
 @extend_schema(
@@ -30,7 +30,9 @@ class TimeSlotListView(generics.ListAPIView):
     description="Creates a new visit for a patient.",
     responses={201: VisitSerializer},
     )
+@permission_classes([AllowAny])
 class VisitCreateView(generics.GenericAPIView):
+    permission_classes = [AllowAny] 
     serializer_class = VisitCreateSerializer
 
     def post(self, request):
@@ -41,7 +43,7 @@ class VisitCreateView(generics.GenericAPIView):
 
             try:
                 # URL mikroserwisu User Service (można dać do settings!)
-                url = f"http://auth-service:8000/auth/patient/{patient_id}"
+                url = f"{settings.AUTH_SERVICE_URL}/auth/patient/{patient_id}"
                 response = requests.get(url, timeout=5)
                 print(response)
                 if response.status_code != 200 or response.text.lower() != 'true':
@@ -69,13 +71,16 @@ class VisitCreateView(generics.GenericAPIView):
             time_slot.is_available = False
             time_slot.save()
 
+            publish_visit_booked_event(visit)
+
             return Response({
                 "id": visit.id,
                 "doctor_id": visit.doctor.doctor_id,
                 "patient_id": visit.patient_id,
                 "time_slot": time_slot.id,
                 "status": visit.status,
-                "notes": visit.notes
+                "notes": visit.notes,
+                'variant': visit.variant
             }, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

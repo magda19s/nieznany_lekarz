@@ -14,5 +14,8 @@ if not User.objects.filter(username='admin').exists():
     User.objects.create_superuser('admin', 'admin@example.com', 'admin')
 EOF
 
+echo "Starting VisitBooked consumer..."
+python manage.py consume_visit_booked &
+
 echo "Starting Django server..."
 exec "$@"

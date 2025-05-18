@@ -1,4 +1,13 @@
 services:
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - app-network
+      
   auth-db:
     image: postgres:15
     environment:
@@ -72,6 +81,7 @@ services:
       DB_HOST: payment-db
     depends_on:
       - payment-db
+      - rabbitmq
     volumes:
       - ./services/payment_service:/app
     networks:
@@ -87,6 +97,7 @@ services:
       DB_USER: postgres
       DB_PASSWORD: postgres
       DB_HOST: visit-db
+      AUTH_SERVICE_URL: http://auth-service:8000
     depends_on:
       - visit-db
     volumes:
@@ -108,14 +119,6 @@ services:
       - email-db
     volumes:
       - ./services/email_service:/app
-    networks:
-      - app-network
-
-  rabbitmq:
-    image: rabbitmq:3-management
-    ports:
-      - "5672:5672"
-      - "15672:15672"
     networks:
       - app-network
 

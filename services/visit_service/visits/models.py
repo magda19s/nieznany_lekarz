@@ -23,4 +23,8 @@ class Visit(models.Model):
         ('cancelled', 'Cancelled'),
         ('paid', 'Paid')
     ])
+    variant = models.CharField(max_length=20, choices= [
+        ('first', 'First visit'),
+        ('follow_up', 'Follow-up visit'),
+    ], default='first')
     notes = models.TextField(blank=True, null=True)
