@@ -144,3 +144,5 @@ SPECTACULAR_SETTINGS = {
 }
 
 AUTH_SERVICE_URL = os.getenv("USER_SERVICE_URL", "http://auth-service:8000")
+PAYMENT_SERVICE_URL = os.getenv("PAYMENT_SERVICE_URL", "http://payment-service:8000")
+

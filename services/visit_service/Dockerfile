@@ -1,6 +1,9 @@
 # Dockerfile
 FROM python:3.11
 
+# Instalacja netcat
+RUN apt-get update && apt-get install -y netcat-openbsd
+
 WORKDIR /app
 
 COPY requirements.txt .

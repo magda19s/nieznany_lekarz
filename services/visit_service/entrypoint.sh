@@ -14,5 +14,16 @@ if not User.objects.filter(username='admin').exists():
     User.objects.create_superuser('admin', 'admin@example.com', 'admin')
 EOF
 
+echo "Waiting for RabbitMQ to be available..."
+until nc -z rabbitmq 5672; do
+  echo "RabbitMQ is unavailable - sleeping"
+  sleep 2
+done
+echo "RabbitMQ is up!"
+
+echo "Starting Payment consumer..."
+python manage.py consume_payments &
+
+
 echo "Starting Django server..."
 exec "$@"

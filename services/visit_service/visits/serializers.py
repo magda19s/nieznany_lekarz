@@ -25,3 +25,5 @@ class VisitSerializer(serializers.ModelSerializer):
 
 class VisitNotesUpdateSerializer(serializers.Serializer):
     notes = serializers.CharField()
+class VisitStatusUpdateSerializer(serializers.Serializer):
+    status = serializers.CharField()
