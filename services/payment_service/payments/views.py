@@ -6,6 +6,7 @@ from datetime import datetime
 import pytz
 from .models import Payment
 from .serializers import PaymentStatusUpdateSerializer, PaymentSerializer
+from .utils.rabbitmq_publisher import publish_payment_event
 
 
 @extend_schema(
@@ -35,7 +36,7 @@ class PaymentStatusUpdateView(APIView):
             new_status = serializer.validated_data['status']
 
             try:
-                payment = Payment.objects.get(visit__id=visit_id)
+                payment = Payment.objects.get(visit_id=visit_id)
             except Payment.DoesNotExist:
                 return Response(
                     {"detail": "Payment not found for this visit"},
@@ -43,9 +44,10 @@ class PaymentStatusUpdateView(APIView):
                 )
 
             payment.status = new_status
-            payment.updated_at = datetime.now(pytz.timezone('Europe/Warsaw')).strftime("%d.%m.%Y %H:%M:%S")
+            # payment.updated_at = datetime.now(pytz.timezone('Europe/Warsaw')).strftime("%d.%m.%Y %H:%M:%S")
 
             payment.save()
+            publish_payment_event(payment)
 
             return Response(PaymentSerializer(payment).data, status=status.HTTP_200_OK)
 
