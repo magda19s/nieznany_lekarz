@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import generics
 from .models import TimeSlot,Visit
-from .serializers import TimeSlotSerializer, VisitCreateSerializer, VisitSerializer, VisitNotesUpdateSerializer
+from .serializers import TimeSlotSerializer, VisitCreateSerializer, VisitSerializer, VisitNotesUpdateSerializer, VisitStatusUpdateSerializer
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiTypes
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -176,3 +176,43 @@ class UpdateVisitNotesView(APIView):
             return Response(VisitSerializer(visit).data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+@extend_schema(
+    summary="Update visit status",
+    parameters=[
+        OpenApiParameter(
+            name='visit_id',
+            description='ID of the visit',
+            required=True,
+            type=str,
+            location=OpenApiParameter.PATH,
+        )
+    ],
+    request=VisitStatusUpdateSerializer,
+    responses={
+        200: VisitSerializer,
+        403: {"detail": "Forbidden"},
+        404: {"detail": "Visit not found"},
+    }
+)
+class UpdateVisitStatusView(APIView):
+    def patch(self, request, visit_id):
+        status_value = request.data.get('status')
+
+        if status_value not in ['paid', 'unpaid']:
+            return Response({"detail": "Invalid status. Allowed: 'paid' or 'unpaid'."},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            visit = Visit.objects.get(id=visit_id)
+        except Visit.DoesNotExist:
+            return Response({"detail": "Visit not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        if status_value == 'paid':
+            visit.status = 'paid'
+        elif status_value == 'unpaid':
+            visit.status = 'cancelled'
+
+        visit.save()
+        return Response({"detail": f"Visit status updated to '{visit.status}'"}, status=status.HTTP_200_OK)

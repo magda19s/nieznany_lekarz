@@ -6,35 +6,31 @@ import pytz
 
 RABBITMQ_HOST = os.environ.get('RABBITMQ_HOST', 'rabbitmq')
 
-def publish_visit_booked_event(visit):
+def publish_payment_event(payment):
     try:
         connection = pika.BlockingConnection(pika.ConnectionParameters(host=RABBITMQ_HOST))
         channel = connection.channel()
 
-        channel.queue_declare(queue='visit_booked', durable=True)
+        channel.queue_declare(queue='payment', durable=True)
 
         message = {
-            "event": "VisitBooked",
-            "visitId": str(visit.id),
-            "doctorId": str(visit.doctor.doctor_id),
-            "patientId": visit.patient_id,
-            "timeSlot": {
-                "id": str(visit.time_slot.id),
-                "start": visit.time_slot.start.isoformat(),
-                "end": visit.time_slot.end.isoformat(),
-            },
+            "event": "Payment",
+            "visitId": str(payment.visit_id),
+            "status": str(payment.status),
+            "amount": payment.amout,
+            "currency": str(payment.currency),
             "timestamp": datetime.now(pytz.timezone('Europe/Warsaw')).strftime("%d.%m.%Y %H:%M:%S")
         }
 
         channel.basic_publish(
             exchange='',
-            routing_key='visit_booked',
+            routing_key='payment',
             body=json.dumps(message),
             properties=pika.BasicProperties(delivery_mode=2)  # trwała wiadomość
         )
 
-        print(f"[x] Sent VisitBooked event for visit {visit.id}")
+        print(f"[x] Sent Payment event for visit {payment.id}")
         connection.close()
 
     except Exception as e:
-        print(f"[!] Failed to send VisitBooked event: {e}")
+        print(f"[!] Failed to send Payment event: {e}")
