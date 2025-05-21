@@ -29,7 +29,7 @@ def publish_payment_event(payment):
             properties=pika.BasicProperties(delivery_mode=2)  # trwała wiadomość
         )
 
-        print(f"[x] Sent Payment event for visit {visit.id}")
+        print(f"[x] Sent Payment event for visit {payment.id}")
         connection.close()
 
     except Exception as e:
