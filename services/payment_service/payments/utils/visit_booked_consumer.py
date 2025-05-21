@@ -20,10 +20,13 @@ def handle_visit_booked(ch, method, properties, body):
     )
 
 def start_consumer():
+    print("===> Starting consumer")
     connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
+    print("===> Connected to RabbitMQ")
     channel = connection.channel()
-    channel.queue_declare(queue='visit_booked')
+    channel.queue_declare(queue='visit_booked', durable=True)
 
     channel.basic_consume(queue='visit_booked', on_message_callback=handle_visit_booked, auto_ack=True)
+    print("===> Waiting for messages")
     print('[*] Waiting for VisitBooked...')
     channel.start_consuming()

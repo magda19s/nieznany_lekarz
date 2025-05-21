@@ -19,8 +19,8 @@ def publish_visit_booked_event(visit):
             "patientId": visit.patient_id,
             "timeSlot": {
                 "id": str(visit.time_slot.id),
-                "start": visit.time_slot.start_time.isoformat(),
-                "end": visit.time_slot.end_time.isoformat(),
+                "start": visit.time_slot.start.isoformat(),
+                "end": visit.time_slot.end.isoformat(),
             },
             "timestamp": datetime.utcnow().isoformat() + "Z"
         }

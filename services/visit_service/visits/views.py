@@ -71,7 +71,9 @@ class VisitCreateView(generics.GenericAPIView):
             time_slot.is_available = False
             time_slot.save()
 
+            print("[DEBUG] About to publish event for visit:", visit.id)
             publish_visit_booked_event(visit)
+            print("[DEBUG] Event publish call finished.")
 
             return Response({
                 "id": visit.id,
