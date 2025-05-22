@@ -17,7 +17,7 @@ def publish_payment_event(payment):
             "event": "Payment",
             "visitId": str(payment.visit_id),
             "status": str(payment.status),
-            "amount": payment.amout,
+            "amount": float(payment.amount),
             "currency": str(payment.currency),
             "timestamp": datetime.now(pytz.timezone('Europe/Warsaw')).strftime("%d.%m.%Y %H:%M:%S")
         }

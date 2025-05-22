@@ -45,8 +45,10 @@ class PaymentStatusUpdateView(APIView):
 
             payment.status = new_status
             # payment.updated_at = datetime.now(pytz.timezone('Europe/Warsaw')).strftime("%d.%m.%Y %H:%M:%S")
+            print("Publishing payment:", payment.id)
 
             payment.save()
+            print("Publishing payment:", payment.id)
             publish_payment_event(payment)
 
             return Response(PaymentSerializer(payment).data, status=status.HTTP_200_OK)

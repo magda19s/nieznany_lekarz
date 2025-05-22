@@ -13,7 +13,7 @@ def handle_payment(ch, method, properties, body):
     data = json.loads(body)
     print("Received Payment:", data)
 
-    visit_id = data['visit_id']
+    visit_id = data['visitId']
     status_value = data['status']# domyślnie unpaid, jeśli brak
 
  
