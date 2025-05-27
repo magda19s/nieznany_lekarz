@@ -4,7 +4,11 @@ import shape1 from "@/assets/shape1.png";
 import { Card } from "@/components/ui/card";
 import { Outlet } from 'react-router-dom';
 import { NavLink } from "react-router-dom";
+import { GoogleLogin } from "@react-oauth/google";
+import { useState } from "react";
+
 function Layout() {
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const navLinkClass = ({ isActive }: { isActive: boolean }) =>
         isActive ? "text-green-600 font-semibold" : "text-gray-700 hover:text-green-500";
 
@@ -26,7 +30,13 @@ function Layout() {
                         <NavLink to="/services" className={navLinkClass}>Services</NavLink>
                         <NavLink to="/contact" className={navLinkClass}>Contact</NavLink>
                     </nav>
-                    <Button className="bg-emerald-600 hover:bg-emerald-700 text-white text-xl px-6 py-3">Register Now</Button>
+                    {
+                        !isLoggedIn ? <GoogleLogin onSuccess={(credentialResponse) => {
+                            console.log(credentialResponse);
+                            setIsLoggedIn(true)
+                        }} /> :
+                            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white text-xl px-6 py-3">Book a service</Button>
+                    }
                 </header>
                 <Outlet />
             </Card>
