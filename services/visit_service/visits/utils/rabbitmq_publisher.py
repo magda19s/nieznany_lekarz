@@ -23,6 +23,7 @@ def publish_visit_booked_event(visit):
                 "start": visit.time_slot.start.isoformat(),
                 "end": visit.time_slot.end.isoformat(),
             },
+            "amount" : float(visit.doctor.amount),
             "timestamp": datetime.now(pytz.timezone('Europe/Warsaw')).strftime("%d.%m.%Y %H:%M:%S")
         }
 

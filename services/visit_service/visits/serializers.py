@@ -4,7 +4,7 @@ from .models import TimeSlot, Doctor, Visit
 class DoctorSerializer(serializers.ModelSerializer):
      class Meta:
         model = Doctor
-        fields = ['doctor_id', 'first_name', 'last_name', 'specialization']
+        fields = ['doctor_id', 'first_name', 'last_name', 'specialization', 'amount']
 
 class TimeSlotSerializer(serializers.ModelSerializer):
     doctor = DoctorSerializer()
@@ -21,7 +21,7 @@ class VisitSerializer(serializers.ModelSerializer):
     time_slot  = TimeSlotSerializer()
     class Meta:
         model = Visit
-        fields = ['id', 'doctor', 'patient_id', 'time_slot', 'status', 'notes', 'variant']
+        fields = ['id', 'doctor', 'patient_id', 'time_slot', 'status', 'notes']
 
 class VisitNotesUpdateSerializer(serializers.Serializer):
     notes = serializers.CharField()

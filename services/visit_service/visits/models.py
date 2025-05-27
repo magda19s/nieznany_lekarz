@@ -5,6 +5,7 @@ class Doctor(models.Model):
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
     specialization = models.CharField(max_length=100)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
 
 class TimeSlot(models.Model):
     id = models.CharField(primary_key=True, max_length=100)
@@ -23,8 +24,4 @@ class Visit(models.Model):
         ('cancelled', 'Cancelled'),
         ('paid', 'Paid')
     ])
-    variant = models.CharField(max_length=20, choices= [
-        ('first', 'First visit'),
-        ('follow_up', 'Follow-up visit'),
-    ], default='first')
     notes = models.TextField(blank=True, null=True)

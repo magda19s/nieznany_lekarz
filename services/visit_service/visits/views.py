@@ -81,8 +81,7 @@ class VisitCreateView(generics.GenericAPIView):
                 "patient_id": visit.patient_id,
                 "time_slot": time_slot.id,
                 "status": visit.status,
-                "notes": visit.notes,
-                'variant': visit.variant
+                "notes": visit.notes
             }, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

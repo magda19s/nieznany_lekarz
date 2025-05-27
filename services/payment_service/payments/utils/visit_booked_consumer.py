@@ -14,10 +14,14 @@ def handle_visit_booked(ch, method, properties, body):
 
     Payment.objects.create(
         visit_id=data['visitId'],
-        amount=120.0,  # Możesz tu dodać lepszą logikę
+        amount=data['amount'], # Możesz tu dodać lepszą logikę
         currency='PLN',
         status='unpaid'
     )
+
+    
+
+
 
 def start_consumer():
     print("===> Starting consumer")

@@ -4,3 +4,5 @@ drf-spectacular
 drf-yasg
 requests>=2.31
 pika==1.3.2
+google-auth
+djangorestframework-simplejwt
