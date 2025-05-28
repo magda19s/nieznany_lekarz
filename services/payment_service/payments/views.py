@@ -1,4 +1,4 @@
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -7,6 +7,7 @@ import pytz
 from .models import Payment
 from .serializers import PaymentStatusUpdateSerializer, PaymentSerializer
 from .utils.rabbitmq_publisher import publish_payment_event
+
 
 
 @extend_schema(

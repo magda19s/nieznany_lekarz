@@ -2,7 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, generics
 from .models import User  # Zakładam, że masz taki model
-from .serializers import GoogleAuthSerializer, UserSerializer
+from .serializers import GoogleAuthSerializer, GoogleSerializer, UserSerializer
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiExample
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -25,7 +25,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
         }
     },
     responses={
-    200: UserSerializer,
+    200: GoogleSerializer,
     400: {"detail": "Invalid Google token"},
     }
 )
@@ -61,17 +61,19 @@ class GoogleAuthView(APIView):
                 }
             )
 
-            refresh = get_tokens_for_user(user)
+            tokens = get_tokens_for_user(user)
 
             return Response({
-                "id": user.id,
-                "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "role": user.role,
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "role": user.role,
+                },
                 "created": created,
-                "access_token": str(refresh.access),
-                "refresh": str(refresh)
+                "access_token": tokens["access_token"],
+                "refresh": tokens["refresh"]
             }, status=status.HTTP_200_OK)
 
         except ValueError:
@@ -107,3 +109,14 @@ class CheckPatientExistsView(generics.GenericAPIView):
             return Response(False, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response(False, status=status.HTTP_404_NOT_FOUND)
+        
+
+class UserDetailView(APIView):
+    # Ten endpoint służy do pobrania danych usera po jego id (np. z tokena)
+    def get(self, request, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        serializer = UserSerializer(user)
+        return Response(serializer.data)

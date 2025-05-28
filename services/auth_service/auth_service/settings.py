@@ -144,3 +144,4 @@ SPECTACULAR_SETTINGS = {
 
 DOCTOR_EMAILS = os.getenv("DOCTOR_EMAILS", "").split(",")
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+

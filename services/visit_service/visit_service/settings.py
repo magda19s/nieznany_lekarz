@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-!_c_b!s_xa6x-y#g$48us!6s-ey7f9x_asb!+j^)1!vczy3@%&'
+SECRET_KEY = 'django-insecure-2_8y88%34(_8006^0iv5iczh0hb8=8=ej=*dlsko^0z@-d&8=('
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -131,17 +131,33 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': ['drf_spectacular.openapi.AutoSchema', 'rest_framework_simplejwt.authentication.JWTAuthentication'],
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
     ],
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Visit Service API',
-    'DESCRIPTION': 'API do zarządzania wizytami lekarskimi',
+    'TITLE': 'Twoje API',
+    'DESCRIPTION': 'Dokumentacja API',
     'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_SETTINGS': {
+        'persistAuthorization': True,  # <-- zachowuje Bearera po odświeżeniu
+    },
+    'SECURITY': [{'Bearer': []}],  # <-- mówi Swaggerowi, że wszystko chronione JWT
+    'SECURITY_SCHEMES': {
+        'Bearer': {
+            'type': 'http',
+            'scheme': 'bearer',
+            'bearerFormat': 'JWT',
+        }
+    }
 }
+
 
 AUTH_SERVICE_URL = os.getenv("USER_SERVICE_URL", "http://auth-service:8000")
 PAYMENT_SERVICE_URL = os.getenv("PAYMENT_SERVICE_URL", "http://payment-service:8000")

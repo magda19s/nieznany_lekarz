@@ -11,14 +11,12 @@ import requests
 from django.conf import settings
 from .utils.rabbitmq_publisher import publish_visit_booked_event
 from rest_framework.permissions import AllowAny
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
-
-
+from rest_framework.decorators import permission_classes
 
 @extend_schema(
     summary="Retrieve available time slots",
     description="Returns all available time slots for all doctors.",
-    responses=TimeSlotSerializer(many=True),
+    responses={200: TimeSlotSerializer},
 )
 class TimeSlotListView(generics.ListAPIView):
     queryset = TimeSlot.objects.filter(is_available=True)
