@@ -142,6 +142,6 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
 }
 
-DOCTOR_EMAILS = os.getenv("DOCTOR_EMAILS", "").split(",")
+DOCTOR_EMAILS = ["260384@student.pwr.edu.pl", "260286@student.pwr.edu.pl", "260417@student.pwr.edu.pl"]
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 

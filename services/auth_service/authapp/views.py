@@ -50,6 +50,7 @@ class GoogleAuthView(APIView):
             last_name = idinfo.get("family_name", "")
             user_id = idinfo.get("sub")  # Google ID (unikalny)
 
+            print(settings.DOCTOR_EMAILS, "EMAILS")
             # Czy użytkownik istnieje?
             user, created = User.objects.get_or_create(
                 email=email,
