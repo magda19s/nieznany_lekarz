@@ -35,7 +35,7 @@ def handle_payment(ch, method, properties, body):
 
 
     
-def start_consumer():
+def start_payment_consumer():
     print("===> Starting consumer")
     connection = pika.BlockingConnection(pika.ConnectionParameters(host='rabbitmq'))
     print("===> Connected to RabbitMQ")

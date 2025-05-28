@@ -5,3 +5,5 @@ drf-spectacular
 google-auth
 djangorestframework-simplejwt
 requests
+pika==1.3.2
+pytz>=2023.3

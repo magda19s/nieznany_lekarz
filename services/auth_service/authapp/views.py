@@ -11,6 +11,7 @@ from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from django.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
+from .utils.doctor_publisher import publish_register_doctor_event
 
 @extend_schema(
     summary="Authenticate user with Google",
@@ -61,6 +62,9 @@ class GoogleAuthView(APIView):
                     "role": "lekarz" if email in settings.DOCTOR_EMAILS else "pacjent"
                 }
             )
+
+            if user.role == 'lekarz':
+                publish_register_doctor_event(user)
 
             tokens = get_tokens_for_user(user)
 

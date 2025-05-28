@@ -14,6 +14,7 @@ class TimeSlotSerializer(serializers.ModelSerializer):
 
 class VisitCreateSerializer(serializers.Serializer):
     time_slot_id = serializers.CharField()
+    patient_id = serializers.CharField()
 
 class VisitSerializer(serializers.ModelSerializer):
     doctor = DoctorSerializer()
