@@ -1,16 +1,90 @@
-import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png";
 import shape1 from "@/assets/shape1.png";
 import { Card } from "@/components/ui/card";
 import { Outlet } from 'react-router-dom';
 import { NavLink } from "react-router-dom";
-import { GoogleLogin } from "@react-oauth/google";
-import { useState } from "react";
+import { GoogleLogin, googleLogout } from "@react-oauth/google";
+import { useEffect, useState } from "react";
+import { jwtDecode } from "jwt-decode";
+import { AxiosAuthApi, AuthApi } from "@/api/AuthApi";
+import { AxiosPaymentsApi } from "@/api/PaymentsApi";
+import { AxiosVisitsApi } from "@/api/VisitsApi";
+import { useMutation } from "@tanstack/react-query";
+import { roleState } from "@/state/role";
+import { tokenState } from "@/state/token";
+import type { User, UserRole } from "@/types/User";
+import { CircleAlert, Loader, LogOut, User as UserIcon } from "lucide-react";
+import { useAtom } from "jotai";
+import { Button } from "./ui/button";
 
 function Layout() {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const navLinkClass = ({ isActive }: { isActive: boolean }) =>
         isActive ? "text-green-600 font-semibold" : "text-gray-700 hover:text-green-500";
+    const [role, setRole] = useAtom(roleState);
+    const [token, setToken] = useAtom(tokenState);
+    const [user, setUser] = useState<User | null>(null);
+
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        const role = localStorage.getItem("role");
+        if (token) {
+            const decodedToken = jwtDecode(token as string);
+            const currentTime = Date.now() / 1000;
+            if (decodedToken.exp && decodedToken.exp < currentTime) {
+                localStorage.removeItem("token");
+                setToken(null);
+                setRole("guest");
+                googleLogout();
+            } else {
+                setToken(token as string);
+                setRole(role ? role as UserRole : "guest")
+            }
+        }
+    }, [setRole, setToken]);
+
+    const { mutate: getUser, isPending } = useMutation({
+        mutationFn: (credentials: string) => AuthApi.getInfo(credentials),
+        onError: (e) => {
+            console.log("error", e)
+        },
+        onSuccess: (data) => {
+            setToken(data.access_token);
+            setRole(data.user.role);
+            localStorage.setItem("token", data.access_token);
+            localStorage.setItem("role", data.user.role);
+            console.log(data);
+            setUser(data.user);
+        },
+    });
+
+    useEffect(() => {
+        const authInterceptor = AxiosAuthApi.interceptors.request.use(config => {
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+            return config;
+        });
+
+        const paymentsInterceptor = AxiosPaymentsApi.interceptors.request.use(config => {
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+            return config;
+        });
+
+        const visitsInterceptor = AxiosVisitsApi.interceptors.request.use(config => {
+            if (token) {
+                config.headers.Authorization = `Bearer ${token}`;
+            }
+            return config;
+        });
+
+        return () => {
+            AxiosAuthApi.interceptors.request.eject(authInterceptor);
+            AxiosPaymentsApi.interceptors.request.eject(paymentsInterceptor);
+            AxiosVisitsApi.interceptors.request.eject(visitsInterceptor);
+        };
+    }, [token]);
 
     return (
         <main className="h-screen bg-white flex flex-col">
@@ -27,16 +101,34 @@ function Layout() {
                     <nav className="hidden md:flex space-x-6 text-xl">
                         <NavLink to="/" className={navLinkClass}>Home</NavLink>
                         <NavLink to="/about-us" className={navLinkClass}>About Us</NavLink>
-                        <NavLink to="/services" className={navLinkClass}>Services</NavLink>
+                        {role === "pacjent" && <NavLink to="/services" className={navLinkClass}>Umów wizytę</NavLink>}
+                        {role === "lekarz" && <NavLink to="/services" className={navLinkClass}>Moje wizyty</NavLink>}
+                        {role === "lekarz" && <NavLink to="/services" className={navLinkClass}>Moi pacjenci</NavLink>}
                         <NavLink to="/contact" className={navLinkClass}>Contact</NavLink>
                     </nav>
-                    {
-                        !isLoggedIn ? <GoogleLogin onSuccess={(credentialResponse) => {
-                            console.log(credentialResponse);
-                            setIsLoggedIn(true)
-                        }} /> :
-                            <Button className="bg-emerald-600 hover:bg-emerald-700 text-white text-xl px-6 py-3">Book a service</Button>
-                    }
+                    <div className="flex gap-10">
+                        {
+                            !token ? <GoogleLogin onSuccess={(credentialResponse) => {
+                                void getUser(credentialResponse.credential as string)
+                            }} /> :
+                                isPending ? <Loader className="animate-spin" /> : user ?
+                                    <div className="flex gap-2 items-center px-2 py-1 rounded-2xl border-emerald-500 border-2 ">
+                                        <UserIcon />
+                                        <span>{user.first_name} {user.last_name}</span>
+                                    </div>
+                                    :
+                                    <div className="flex gap-2 items-center">
+                                        <CircleAlert />
+                                        <span>Błąd logowania</span>
+                                    </div>
+                        }
+                        {token && <Button size="icon" onClick={() => {
+                            googleLogout();
+                            setToken(null);
+                            setRole("guest");
+                        }}
+                        ><LogOut /></Button>}
+                    </div>
                 </header>
                 <Outlet />
             </Card>
