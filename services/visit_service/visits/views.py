@@ -12,6 +12,9 @@ from django.conf import settings
 from .utils.rabbitmq_publisher import publish_visit_booked_event
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import permission_classes
+import jwt
+from rest_framework.response import Response
+from rest_framework import status
 
 @extend_schema(
     summary="Retrieve available time slots",
@@ -28,16 +31,17 @@ class TimeSlotListView(generics.ListAPIView):
     description="Creates a new visit for a patient.",
     responses={201: VisitSerializer},
     )
-@permission_classes([AllowAny])
 class VisitCreateView(generics.GenericAPIView):
-    permission_classes = [AllowAny] 
     serializer_class = VisitCreateSerializer
 
     def post(self, request):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
             time_slot_id = serializer.validated_data['time_slot_id']
-            patient_id = serializer.validated_data['patient_id']
+            patient = request.user
+            patient_id = getattr(patient, 'id', None)
+            if not patient_id:
+                return Response({"detail": "Patient ID not found in token"}, status=401)
 
             try:
                 # URL mikroserwisu User Service (można dać do settings!)
@@ -87,45 +91,52 @@ class VisitCreateView(generics.GenericAPIView):
 
 @extend_schema(
     summary="Retrieve patient's visits",
-    description="Returns a list of visits assigned to a patient based on their ID.",
-    parameters=[
-        OpenApiParameter(
-            name='patient_id',
-            description="ID of the patient whose visits you want to retrieve",
-            required=True,
-            type=str,
-            location=OpenApiParameter.PATH,
-        )
-    ],
+    description="Returns a list of visits assigned to the authenticated patient.",
     responses={200: VisitSerializer(many=True)},
 )
 class VisitByPatientView(generics.ListAPIView):
     serializer_class = VisitSerializer
 
     def get_queryset(self):
-        patient_id = self.kwargs['patient_id']
+        # tutaj odwołujemy się do self.request.user
+        patient = self.request.user
+        patient_id = getattr(patient, "id", None)
+        if not patient_id:
+            return Visit.objects.none()
         return Visit.objects.filter(patient_id=patient_id)
+
+    def list(self, request, *args, **kwargs):
+        patient_id = getattr(request.user, "id", None)
+        if not patient_id:
+            return Response(
+                {"detail": "Patient ID not found in token"}, 
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        return super().list(request, *args, **kwargs)
 
 @extend_schema(
     summary="Retrieve doctor's visits",
-    description="Returns a list of visits assigned to a doctor based on their ID.",
-    parameters=[
-        OpenApiParameter(
-            name='doctor_id',
-            description="ID of the doctor whose visits you want to retrieve",
-            required=True,
-            type=str,
-            location=OpenApiParameter.PATH,
-        )
-    ],
+    description="Returns a list of visits assigned to the authenticated doctor.",
     responses={200: VisitSerializer(many=True)},
 )
 class VisitByDoctorView(generics.ListAPIView):
     serializer_class = VisitSerializer
 
     def get_queryset(self):
-        doctor_id = self.kwargs['doctor_id']
+        doctor = self.request.user
+        doctor_id = getattr(doctor, "id", None)
+        if not doctor_id:
+            return Visit.objects.none()
         return Visit.objects.filter(doctor__doctor_id=doctor_id)
+
+    def list(self, request, *args, **kwargs):
+        doctor_id = getattr(request.user, "id", None)
+        if not doctor_id:
+            return Response(
+                {"detail": "Doctor ID not found in token"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        return super().list(request, *args, **kwargs)
     
 @extend_schema(
     summary="Update visit notes",
@@ -134,13 +145,6 @@ class VisitByDoctorView(generics.ListAPIView):
         OpenApiParameter(
             name='visit_id',
             description='ID of the visit',
-            required=True,
-            type=str,
-            location=OpenApiParameter.PATH,
-        ),
-        OpenApiParameter(
-            name='doctor_id',
-            description='ID of the doctor',
             required=True,
             type=str,
             location=OpenApiParameter.PATH,
@@ -155,7 +159,7 @@ class VisitByDoctorView(generics.ListAPIView):
 )
 class UpdateVisitNotesView(APIView):
 
-    def patch(self, request, visit_id, doctor_id):
+    def patch(self, request, visit_id):
         serializer = VisitNotesUpdateSerializer(data=request.data)
         if serializer.is_valid():
             notes = serializer.validated_data['notes']
@@ -165,6 +169,10 @@ class UpdateVisitNotesView(APIView):
             except Visit.DoesNotExist:
                 return Response({"detail": "Visit not found"}, status=status.HTTP_404_NOT_FOUND)
 
+            doctor = request.user
+            doctor_id = getattr(doctor, 'id', None)
+            if not doctor_id:
+                return Response({"detail": "Doctor ID not found in token"}, status=401)
             if visit.doctor.doctor_id != doctor_id:
                 return Response({"detail": "This doctor is not assigned to the visit."}, status=status.HTTP_403_FORBIDDEN)
 
@@ -213,3 +221,7 @@ class UpdateVisitStatusView(APIView):
 
         visit.save()
         return Response({"detail": f"Visit status updated to '{visit.status}'"}, status=status.HTTP_200_OK)
+
+
+    
+

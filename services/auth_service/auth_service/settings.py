@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -144,4 +145,12 @@ SPECTACULAR_SETTINGS = {
 
 DOCTOR_EMAILS = ["260384@student.pwr.edu.pl", "260286@student.pwr.edu.pl", "260417@student.pwr.edu.pl"]
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # domyślnie 5 minut, tu np. 60
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),     # np. 7 dni
+    # opcjonalnie:
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
+}
 

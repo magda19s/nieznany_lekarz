@@ -5,9 +5,9 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 urlpatterns = [
     path('timeslots/', TimeSlotListView.as_view(), name='timeslot-list'),
     path('visits/', VisitCreateView.as_view(), name='visit-create'),
-    path('visits/patient/<str:patient_id>/', VisitByPatientView.as_view(), name='visit-patient'),
-    path('visits/doctor/<str:doctor_id>/', VisitByDoctorView.as_view(), name='visit-doctor'),
-    path('visits/<str:visit_id>/doctor/<str:doctor_id>/', UpdateVisitNotesView.as_view(), name='visit-doctor'),
+    path('visits/patient/', VisitByPatientView.as_view(), name='visit-patient'),
+    path('visits/doctor/', VisitByDoctorView.as_view(), name='visit-doctor'),
+    path('visits/<str:visit_id>/doctor/', UpdateVisitNotesView.as_view(), name='visit-doctor'),
     path('visits/<str:visit_id>/', UpdateVisitStatusView.as_view(), name='visit-payment'),
 
       # Swagger / OpenAPI

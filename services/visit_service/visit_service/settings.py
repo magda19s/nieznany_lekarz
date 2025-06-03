@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
 from pathlib import Path
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -131,34 +132,41 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
-    ],
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'visits.customJwt.SimpleJWTWithoutDBUser',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Twoje API',
-    'DESCRIPTION': 'Dokumentacja API',
+    'TITLE': 'Visit Service API',
+    'DESCRIPTION': 'Dokumentacja Visit Service',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'SWAGGER_UI_SETTINGS': {
-        'persistAuthorization': True,  # <-- zachowuje Bearera po odświeżeniu
+        'persistAuthorization': True,
     },
-    'SECURITY': [{'Bearer': []}],  # <-- mówi Swaggerowi, że wszystko chronione JWT
+    'SECURITY': [{'BearerAuth': []}],      # musi zgadzać się z `name` w rozszerzeniu
     'SECURITY_SCHEMES': {
-        'Bearer': {
+        'BearerAuth': {                    # nazwa taka sama jak powyżej
             'type': 'http',
             'scheme': 'bearer',
             'bearerFormat': 'JWT',
         }
-    }
+    },
 }
 
 
 AUTH_SERVICE_URL = os.getenv("USER_SERVICE_URL", "http://auth-service:8000")
 PAYMENT_SERVICE_URL = os.getenv("PAYMENT_SERVICE_URL", "http://payment-service:8000")
 
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # domyślnie 5 minut, tu np. 60
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),     # np. 7 dni
+    # opcjonalnie:
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
+}

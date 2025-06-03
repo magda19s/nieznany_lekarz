@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import User
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 class GoogleAuthSerializer(serializers.Serializer):
     token = serializers.CharField()
@@ -18,3 +19,14 @@ class GoogleSerializer(serializers.Serializer):
     created = serializers.CharField()
     access_token = serializers.CharField()
     refresh = serializers.CharField()
+
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
+
+class CustomTokenSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        data['user_id'] = str(self.user.id)
+        data['email'] = self.user.email
+        data['role'] = self.user.role
+        return data
