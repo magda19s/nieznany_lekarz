@@ -5,6 +5,9 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import ReactDOM from "react-dom/client";
 import React from "react";
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
 
 const router = createBrowserRouter([
   {
@@ -24,9 +27,11 @@ const router = createBrowserRouter([
 ]);
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
-  <GoogleOAuthProvider clientId="526474343190-8vun9une71fnhb689k4rjoootlmbgo00.apps.googleusercontent.com">
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <QueryClientProvider client={queryClient}>
+      <GoogleOAuthProvider clientId={import.meta.env.VITE_AUTH_CLIENT_ID}>
+        <RouterProvider router={router} />
+      </GoogleOAuthProvider>
+      </QueryClientProvider>
   </React.StrictMode>
-  </GoogleOAuthProvider>,
 );
