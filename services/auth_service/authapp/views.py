@@ -15,7 +15,7 @@ from .utils.doctor_publisher import publish_register_doctor_event
 
 @extend_schema(
     summary="Authenticate user with Google",
-    description="Weryfikuje użytkownika przy użyciu tokena Google (credential). Jeśli użytkownik nie istnieje, zostaje utworzony. Domyślnie z rolą `pacjent`, chyba że jego e-mail znajduje się na liście lekarzy.",
+    description="The user is verified using a Google token (credential). If the user does not exist, a new one is created with the default role of patient, unless their email address is found on the list of doctors.",
     request={
         "application/json": {
             "type": "object",
@@ -82,7 +82,7 @@ class GoogleAuthView(APIView):
             }, status=status.HTTP_200_OK)
 
         except ValueError:
-           return Response({"detail": "Invalid Google token"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": "Invalid Google token"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 def get_tokens_for_user(user):

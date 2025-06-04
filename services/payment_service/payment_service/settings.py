@@ -150,3 +150,4 @@ SPECTACULAR_SETTINGS = {
     'DESCRIPTION': 'API do zarządzania płatnościami',
     'VERSION': '1.0.0',
 }
+

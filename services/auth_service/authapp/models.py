@@ -15,9 +15,9 @@ class User(models.Model):
     
     # Rola użytkownika (lekarz lub pacjent)
     role = models.CharField(max_length=50, choices=[
-        ('lekarz', 'Lekarz'),
-        ('pacjent', 'Pacjent'),
-    ])
+    ('doctor', 'Doctor'),
+    ('patient', 'Patient'),
+])
 
     def __str__(self):
         # Zwróć pełne imię i nazwisko oraz rolę użytkownika

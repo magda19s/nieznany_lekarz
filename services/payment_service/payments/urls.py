@@ -1,6 +1,6 @@
 from django.urls import path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from .views import PaymentStatusUpdateView
+from .views import PaymentStatusUpdateView, StripeWebhookView
 
 
 urlpatterns = [
@@ -8,5 +8,6 @@ urlpatterns = [
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('payment/<str:visit_id>/', PaymentStatusUpdateView.as_view(), name='payment-update'),
+    path('payment/stripe/', StripeWebhookView.as_view(), name='stripe-webhook')
 
 ]

@@ -7,3 +7,4 @@ google-auth
 djangorestframework-simplejwt
 djangorestframework
 requests
+stripe
