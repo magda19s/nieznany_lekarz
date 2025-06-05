@@ -12,6 +12,7 @@ from google.auth.transport import requests as google_requests
 from django.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
 from .utils.doctor_publisher import publish_register_doctor_event
+from rest_framework.permissions import IsAuthenticated
 
 @extend_schema(
     summary="Authenticate user with Google",
@@ -125,3 +126,4 @@ class UserDetailView(APIView):
             return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
         serializer = UserSerializer(user)
         return Response(serializer.data)
+    

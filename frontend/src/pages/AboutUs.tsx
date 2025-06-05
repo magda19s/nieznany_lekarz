@@ -1,10 +1,10 @@
-import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import shape2 from "@/assets/shape2.png";
-import doctors from "@/assets/doctors.png";
+import doctors from "@/assets/team.png";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
-export default function HomePage() {
+export default function AboutUs() {
   return (
     <div className="flex flex-row items-between">
       <motion.div
@@ -14,13 +14,13 @@ export default function HomePage() {
         className="max-w-xl space-y-6 my-auto"
       >
         <h2 className="text-4xl md:text-5xl font-bold text-gray-900 pb-8">
-          Get Quick <span className="text-emerald-600">Medical Services</span>
+          Meet the <span className="text-emerald-600">Team Behind</span> the Care
         </h2>
         <p className="text-gray-600 text-xl pb-10">
-          Access healthcare faster than ever. Our platform connects you with expert doctors and clinics with just a few clicks.
+          We're passionate about redefining healthcare access. Our mission is to connect patients with trusted medical professionals in the simplest way possible.
         </p>
-        <Link to="/new-service">
-          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white text-xl px-10 py-6">Book a service</Button>
+        <Link to="/contact">
+          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white text-xl px-10 py-6">Contact Us</Button>
         </Link>
       </motion.div>
 
@@ -34,15 +34,15 @@ export default function HomePage() {
           <img src={shape2} alt="shape-2" className="absolute top-20 right-10 scale-160 scale-x-180 -z-1" />
           <img
             src={doctors}
-            alt="Doctors"
+            alt="Our Team"
             className="z-1 h-full rounded-4xl shadow-lg"
           />
           <div className="absolute top-4 left-4 bg-white p-2 rounded-xl shadow text-sm text-green-700 font-medium">
-            1520+ Active Clients
+            10+ Years of Experience
           </div>
           <div className="absolute bottom-4 right-4 bg-white p-2 rounded-xl shadow text-sm text-green-700">
-            ✓ 20% off for new users<br />
-            ✓ Expert Doctors
+            ✓ Dedicated Support<br />
+            ✓ Trusted by thousands
           </div>
         </div>
       </motion.div>

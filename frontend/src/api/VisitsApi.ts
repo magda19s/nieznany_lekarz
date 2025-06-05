@@ -1,3 +1,4 @@
+import type { DoctorTimeSlot, TimeSlot } from "@/types/TimeSlot";
 import axios from "axios";
 
 const AxiosVisitsApi = axios.create({
@@ -5,4 +6,13 @@ const AxiosVisitsApi = axios.create({
   timeout: 4800,
 });
 
-export { AxiosVisitsApi };
+
+class VisitsApi {
+  static async getTimeSlots() {
+    const { data: timeslots } = await AxiosVisitsApi.get<TimeSlot[]>("/timeslots");
+    return timeslots;
+  }
+}
+
+export { AxiosVisitsApi, VisitsApi };
+
