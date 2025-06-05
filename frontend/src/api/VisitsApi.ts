@@ -1,4 +1,4 @@
-import type { DoctorTimeSlot, TimeSlot } from "@/types/TimeSlot";
+import type { TimeSlot } from "@/types/TimeSlot";
 import axios from "axios";
 
 const AxiosVisitsApi = axios.create({

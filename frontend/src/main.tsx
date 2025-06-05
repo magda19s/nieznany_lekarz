@@ -10,6 +10,7 @@ import BookAService from '@/pages/BookAService';
 import AboutUs from '@/pages/AboutUs';
 import Contact from '@/pages/Contact';
 import PrivateRoute from './PrivateRoute';
+import Payment from './pages/Payment';
 
 const queryClient = new QueryClient();
 
@@ -22,20 +23,24 @@ const router = createBrowserRouter([
         path: "",
         element: <HomePage />,
       },
-       {
+      {
         element: <PrivateRoute allowedRoles={["pacjent", "patient"]} />,
         children: [
           {
             path: "/new-service",
             element: <BookAService />,
           },
+          {
+            path: "/payment",
+            element: <Payment />,
+          },
         ],
       },
-        {
+      {
         path: "/about-us",
         element: <AboutUs />,
       },
-       {
+      {
         path: "/contact",
         element: <Contact />,
       },
@@ -53,6 +58,6 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
       <GoogleOAuthProvider clientId={import.meta.env.VITE_AUTH_CLIENT_ID}>
         <RouterProvider router={router} />
       </GoogleOAuthProvider>
-      </QueryClientProvider>
+    </QueryClientProvider>
   </React.StrictMode>
 );

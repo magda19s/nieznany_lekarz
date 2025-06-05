@@ -26,7 +26,6 @@ function Layout() {
 
     const decoded = token ? jwtDecode<JwtPayload>(token) : null;
     const userId = decoded?.user_id;
-    console.log("role: ", role)
 
     const { mutate: logIn, isPending: isLoginPending } = useMutation({
         mutationFn: (credentials: string) => AuthApi.logIn(credentials),

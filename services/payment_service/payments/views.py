@@ -5,7 +5,7 @@ from rest_framework import status
 from datetime import datetime
 import pytz
 from .models import Payment
-from .serializers import PaymentStatusUpdateSerializer, PaymentSerializer
+from .serializers import CreateCheckoutSerializer, PaymentStatusUpdateSerializer, PaymentSerializer
 from .utils.rabbitmq_publisher import publish_payment_event
 import stripe
 from django.conf import settings
@@ -13,10 +13,12 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from payments.models import Payment
-from payments.serializers import PaymentSerializer  # zakładam, że to masz
+from payments.serializers import PaymentSerializer 
 from drf_spectacular.utils import extend_schema
+from decouple import config
 
-
+STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
+FRONTEND_URL = config("FRONTEND_URL")
 
 @extend_schema(
     summary="Update payment status",
@@ -96,6 +98,62 @@ class StripeWebhookView(APIView):
 
             publish_payment_event(payment)
 
-        # Obsłuż inne eventy, jeśli chcesz...
-
         return Response({"status": "success"}, status=status.HTTP_200_OK)
+
+from .serializers import TimeSlotPayloadSerializer
+
+@extend_schema(
+    summary="Create Stripe Checkout Session",
+    description="Creates a Stripe checkout session based on timeslot payload and doctor price.",
+    request=TimeSlotPayloadSerializer,
+    responses={200: dict, 400: {"detail": "Invalid input"}}
+)
+class CreateCheckoutSessionView(APIView):
+    def post(self, request):
+        serializer = TimeSlotPayloadSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        timeslot = serializer.validated_data
+        doctor = timeslot["doctor"]
+        price = float(doctor["amount"])  # from frontend
+
+        stripe.api_key = settings.STRIPE_SECRET_KEY
+        frontend_url = settings.FRONTEND_URL
+        if not frontend_url:
+            return Response({"detail": "Missing FRONTEND_URL in settings"}, status=500)
+
+        metadata = {
+            "user_id": str(request.user.id),
+            "timeslot_id": timeslot["id"],
+            "doctor_id": doctor["doctor_id"],
+        }
+
+        try:
+            session = stripe.checkout.Session.create(
+                line_items=[
+                    {
+                        "price_data": {
+                            "currency": "pln",
+                            "product_data": {
+                                "name": f"Wizyta: {doctor['first_name']} {doctor['last_name']}"
+                            },
+                            "unit_amount": int(price * 100),
+                        },
+                        "quantity": 1,
+                    }
+                ],
+                mode="payment",
+                ui_mode="embedded",
+                return_url=f"{frontend_url}/redirect?session_id={{CHECKOUT_SESSION_ID}}",
+                metadata=metadata,
+                payment_intent_data={"metadata": metadata},
+            )
+
+            return Response({"client_secret": session.client_secret}, status=200)
+
+        except Exception as e:
+            return Response(
+                {"detail": f"Stripe error: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

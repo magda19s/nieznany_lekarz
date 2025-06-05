@@ -82,6 +82,8 @@ services:
     depends_on:
       - payment-db
       - rabbitmq
+    env_file:
+      - .env
     volumes:
       - ./services/payment_service:/app
     networks:

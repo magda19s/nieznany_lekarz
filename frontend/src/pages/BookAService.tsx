@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { roleState } from '@/state/role';
+import { timeslotState } from '@/state/timeslot';
 import type { Doctor } from '@/types/Doctor';
 import type { TimeSlot } from '@/types/TimeSlot';
 import { stringToColor } from '@/utils/avatar';
@@ -14,14 +15,17 @@ import { useQuery } from '@tanstack/react-query';
 import { useAtom } from 'jotai';
 import { Calendar, CircleAlert, Loader } from 'lucide-react';
 import { useMemo, useState, type FC } from 'react'
+import { useNavigate } from 'react-router-dom';
 
 const BookAService: FC = () => {
     const [role] = useAtom(roleState);
+    const [, setTimeSlot] = useAtom(timeslotState);
     const { data: timeslots, isPending, isError } = useQuery({
         queryKey: ["timeslots"],
         queryFn: VisitsApi.getTimeSlots,
         enabled: ["patient", "pacjent"].includes(role)
     });
+    const navigate = useNavigate();
 
     const [timeslot, setTimeslot] = useState<TimeSlot | null>(null);
     const [doctor, setDoctor] = useState<Doctor | null>(null);
@@ -73,6 +77,12 @@ const BookAService: FC = () => {
         }, {} as Record<string, typeof filteredTimeSlots>);
     }, [filteredTimeSlots]);
 
+    const onPaymentClick = () => {
+        if (!timeslot) return;
+        setTimeSlot(timeslot);
+        navigate("/payment")
+    };
+
     return (
         <div className='w-full flex flex-col justify-between  h-full'>
             {isPending ? <Loader className='animate-spin' /> : isError ? <div className="flex gap-2 items-center">
@@ -94,8 +104,8 @@ const BookAService: FC = () => {
                                     {d.first_name} {d.last_name}
                                 </span>
                                 <div className='flex gap-2 mt-0.5'>
-                                    <Badge className='capitalize'>{d.specialization}</Badge> 
-                                <Badge className='bg-green-900'>${d.amount}</Badge></div>
+                                    <Badge className='capitalize'>{d.specialization}</Badge>
+                                    <Badge className='bg-green-900'>${d.amount}</Badge></div>
                             </div>
                         </Card>)}
 
@@ -130,7 +140,7 @@ const BookAService: FC = () => {
                 </ScrollArea>
             </div>}
             {timeslot && <Card className='p-4 mt-auto'>
-                <Button className='ml-auto bg-emerald-600 hover:bg-emerald-700'>Go to payment</Button>
+                <Button className='ml-auto bg-emerald-600 hover:bg-emerald-700' onClick={onPaymentClick}>Go to payment</Button>
             </Card>
             }
         </div>
