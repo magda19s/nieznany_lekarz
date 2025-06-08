@@ -4,7 +4,7 @@ from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
     path('timeslots/', TimeSlotListView.as_view(), name='timeslot-list'),
-    path('visits/', VisitCreateView.as_view(), name='visit-create'),
+    path('visits/<str:timeslot_id>', VisitCreateView.as_view(), name='visit-create'),
     path('visits/patient/', VisitByPatientView.as_view(), name='visit-patient'),
     path('visits/doctor/', VisitByDoctorView.as_view(), name='visit-doctor'),
     path('visits/<str:visit_id>/doctor/', UpdateVisitNotesView.as_view(), name='visit-doctor'),

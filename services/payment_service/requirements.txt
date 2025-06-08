@@ -9,3 +9,4 @@ djangorestframework
 requests
 stripe
 python-decouple>=3.8
+django-cors-headers==4.3.1

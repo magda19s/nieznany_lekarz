@@ -21,7 +21,7 @@ class DoctorDataSerializer(serializers.Serializer):
     first_name = serializers.CharField()
     last_name = serializers.CharField()
     specialization = serializers.CharField()
-    amount = serializers.CharField()
+    amount = serializers.FloatField()
 
 class TimeSlotPayloadSerializer(serializers.Serializer):
     id = serializers.CharField()

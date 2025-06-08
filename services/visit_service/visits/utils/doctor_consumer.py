@@ -15,8 +15,8 @@ def handle_doctor_register(ch, method, properties, body):
 
     Doctor.objects.create(
         doctor_id=data['id'],
-        first_name=data['first_name'], # Możesz tu dodać lepszą logikę
-        last_name=['last_name'],
+        first_name=data['first_name'],
+        last_name=data['last_name'],
         specialization='Cardiologist',
         amount=150
     )

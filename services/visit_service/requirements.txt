@@ -8,3 +8,4 @@ google-auth
 djangorestframework-simplejwt
 djangorestframework
 requests
+django-cors-headers==4.3.1

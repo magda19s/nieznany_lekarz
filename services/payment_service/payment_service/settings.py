@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 from datetime import timedelta
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-4q=iu8=)!oej*pe$@bkz8bh6)+y9ph%l74nm#k4f&_$e&gvt7v'
+SECRET_KEY = 'django-insecure-2_8y88%34(_8006^0iv5iczh0hb8=8=ej=*dlsko^0z@-d&8=('
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -30,7 +31,7 @@ ALLOWED_HOSTS = ['*']
 
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # domyślnie 5 minut, tu np. 60
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=120),  # domyślnie 5 minut, tu np. 60
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),     # np. 7 dni
     # opcjonalnie:
     'ROTATE_REFRESH_TOKENS': False,
@@ -47,7 +48,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'payments',
     'rest_framework',
-    'drf_spectacular'
+    'drf_spectacular',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
@@ -58,7 +60,19 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware'
 ]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8080",  # Vue/React dev server
+]
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "authorization",
+    "content-type",
+]
+
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
 ROOT_URLCONF = 'payment_service.urls'
 
@@ -138,12 +152,33 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'payments.customJwt.SimpleJWTWithoutDBUser',
     ),
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Payment Service API',
-    'DESCRIPTION': 'API do zarządzania płatnościami',
+    'TITLE': 'Visit Service API',
+    'DESCRIPTION': 'Dokumentacja Visit Service',
     'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_SETTINGS': {
+        'persistAuthorization': True,
+    },
+    'SECURITY': [{'BearerAuth': []}],      # musi zgadzać się z `name` w rozszerzeniu
+    'SECURITY_SCHEMES': {
+        'BearerAuth': {                    # nazwa taka sama jak powyżej
+            'type': 'http',
+            'scheme': 'bearer',
+            'bearerFormat': 'JWT',
+        }
+    },
 }
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=120),  # domyślnie 5 minut, tu np. 60
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),     # np. 7 dni
+    # opcjonalnie:
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
+}
+

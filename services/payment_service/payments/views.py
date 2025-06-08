@@ -16,6 +16,7 @@ from payments.models import Payment
 from payments.serializers import PaymentSerializer 
 from drf_spectacular.utils import extend_schema
 from decouple import config
+from rest_framework.permissions import IsAuthenticated
 
 STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
 FRONTEND_URL = config("FRONTEND_URL")
@@ -109,6 +110,7 @@ from .serializers import TimeSlotPayloadSerializer
     responses={200: dict, 400: {"detail": "Invalid input"}}
 )
 class CreateCheckoutSessionView(APIView):
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         serializer = TimeSlotPayloadSerializer(data=request.data)
         if not serializer.is_valid():
@@ -122,9 +124,14 @@ class CreateCheckoutSessionView(APIView):
         frontend_url = settings.FRONTEND_URL
         if not frontend_url:
             return Response({"detail": "Missing FRONTEND_URL in settings"}, status=500)
+        
+        user = request.user
+        user_id = getattr(user, 'id', None)
+        if not user_id:
+            return Response({"detail": "User ID not found in token"}, status=401)
 
         metadata = {
-            "user_id": str(request.user.id),
+            "user_id": user_id,
             "timeslot_id": timeslot["id"],
             "doctor_id": doctor["doctor_id"],
         }

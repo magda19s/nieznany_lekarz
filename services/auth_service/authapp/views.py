@@ -60,11 +60,11 @@ class GoogleAuthView(APIView):
                     "id": user_id,
                     "first_name": first_name,
                     "last_name": last_name,
-                    "role": "lekarz" if email in settings.DOCTOR_EMAILS else "pacjent"
+                    "role": "doctor" if email in settings.DOCTOR_EMAILS else "patient"
                 }
             )
 
-            if user.role == 'lekarz':
+            if user.role == 'doctor':
                 publish_register_doctor_event(user)
 
             tokens = get_tokens_for_user(user)
@@ -95,22 +95,18 @@ def get_tokens_for_user(user):
 @extend_schema(
     summary="Check if patient exists",
     description="Returns true if a user with the given ID exists and has the role 'patient'; otherwise, returns false.",
-    parameters=[
-        OpenApiParameter(
-            name='patient_id',
-            description='Verify patient existence',
-            required=True,
-            type=str,
-            location=OpenApiParameter.PATH,
-        )
-    ],
     responses={200: bool, 404: bool}
 )
 class CheckPatientExistsView(generics.GenericAPIView):
-    def get(self, request, patient_id):
+    permission_classes = [IsAuthenticated]
+    def get(self, request):
         try:
+            patient = request.user
+            patient_id = getattr(patient, 'id', None)
+            if not patient_id:
+                return Response({"detail": "Patient ID not found in token"}, status=401)
             user = User.objects.get(id=patient_id)
-            if user.role == 'pacjent':
+            if user.role == 'patient':
                 return Response(True, status=status.HTTP_200_OK)
             return Response(False, status=status.HTTP_200_OK)
         except User.DoesNotExist:
@@ -118,9 +114,10 @@ class CheckPatientExistsView(generics.GenericAPIView):
         
 
 class UserDetailView(APIView):
-    # Ten endpoint służy do pobrania danych usera po jego id (np. z tokena)
-    def get(self, request, user_id):
+    def get(self, request):
         try:
+            user_from_token = request.user
+            user_id = getattr(user_from_token, 'id', None)
             user = User.objects.get(id=user_id)
         except User.DoesNotExist:
             return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)

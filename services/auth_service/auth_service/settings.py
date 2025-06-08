@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 from datetime import timedelta
+from corsheaders.defaults import default_headers
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,6 +23,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-2_8y88%34(_8006^0iv5iczh0hb8=8=ej=*dlsko^0z@-d&8=('
+
+SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -42,7 +45,8 @@ INSTALLED_APPS = [
     'rest_framework',  # Dodaj DRF
     # Twoje aplikacje
     'authapp', # Aplikacja do autentykacji
-    'drf_spectacular'
+    'drf_spectacular',
+    'corsheaders'
 ]
 
 MIDDLEWARE = [
@@ -53,10 +57,19 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware'
 ]
 
 ROOT_URLCONF = 'auth_service.urls'
 
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8080",  # Vue/React dev server
+]
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "authorization",
+    "content-type",
+]
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -133,7 +146,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        "rest_framework_simplejwt.authentication.JWTAuthentication",
+        'authapp.customJwt.SimpleJWTWithoutDBUser',
     ),
 }
 
@@ -147,7 +160,7 @@ DOCTOR_EMAILS = ["260384@student.pwr.edu.pl", "260286@student.pwr.edu.pl", "2604
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),  # domyślnie 5 minut, tu np. 60
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=120),  # domyślnie 5 minut, tu np. 60
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),     # np. 7 dni
     # opcjonalnie:
     'ROTATE_REFRESH_TOKENS': False,

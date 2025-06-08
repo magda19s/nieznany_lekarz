@@ -29,64 +29,71 @@ class TimeSlotListView(generics.ListAPIView):
 @extend_schema(
     summary="Create a new visit",
     description="Creates a new visit for a patient.",
+    parameters=[
+        OpenApiParameter(
+            name='timeslot_id',
+            description='Timeslot fo the visit',
+            required=True,
+            type=str,
+            location=OpenApiParameter.PATH,
+        )
+    ],
     responses={201: VisitSerializer},
     )
 class VisitCreateView(generics.GenericAPIView):
-    serializer_class = VisitCreateSerializer
+    def post(self, request, timeslot_id):
+        patient = request.user
+        patient_id = getattr(patient, 'id', None)
+        if not patient_id:
+            return Response({"detail": "Patient ID not found in token"}, status=401)
 
-    def post(self, request):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            time_slot_id = serializer.validated_data['time_slot_id']
-            patient = request.user
-            patient_id = getattr(patient, 'id', None)
-            if not patient_id:
-                return Response({"detail": "Patient ID not found in token"}, status=401)
+        auth_header = request.META.get("HTTP_AUTHORIZATION")
+        if not auth_header:
+            return Response({"detail": "Authorization header missing"}, status=401)
 
-            try:
-                # URL mikroserwisu User Service (można dać do settings!)
-                url = f"{settings.AUTH_SERVICE_URL}/auth/patient/{patient_id}"
-                response = requests.get(url, timeout=5)
-                print(response)
-                if response.status_code != 200 or response.text.lower() != 'true':
-                    return Response({"detail": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
-            except requests.RequestException as e:
-                return Response({"detail": "Failed to contact user service"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+        try:
+            url = f"{settings.AUTH_SERVICE_URL}/auth/patient"
+            headers = {
+            "Authorization": auth_header
+            }    
+            response = requests.get(url, headers=headers, timeout=5)
+            if response.status_code != 200 or response.text.lower() != 'true':
+                return Response({"detail": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
+        except requests.RequestException:
+            return Response({"detail": "Failed to contact user service"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
+        try:
+            time_slot = TimeSlot.objects.get(id=timeslot_id)
+        except TimeSlot.DoesNotExist:
+            return Response({"detail": "Time slot not found"}, status=status.HTTP_404_NOT_FOUND)
 
-            try:
-                time_slot = TimeSlot.objects.get(id=time_slot_id)
-            except TimeSlot.DoesNotExist:
-                return Response({"detail": "Time slot not found"}, status=status.HTTP_404_NOT_FOUND)
+        if not time_slot.is_available:
+            return Response({"detail": "This time slot is already booked"}, status=status.HTTP_400_BAD_REQUEST)
 
-            if not time_slot.is_available:
-                return Response({"detail": "This time slot is already booked"}, status=status.HTTP_400_BAD_REQUEST)
+        visit = Visit.objects.create(
+            id=str(uuid.uuid4()),
+            doctor=time_slot.doctor,
+            patient_id=patient_id,
+            time_slot=time_slot,
+            status='booked',
+            notes=request.data.get('notes', '')
+        )
+        time_slot.is_available = False
+        time_slot.save()
 
-            visit = Visit.objects.create(
-                id=str(uuid.uuid4()),
-                doctor=time_slot.doctor,
-                patient_id=patient_id,
-                time_slot=time_slot,
-                status='booked',
-                notes=request.data.get('notes', '')
-            )
-            time_slot.is_available = False
-            time_slot.save()
+        print("[DEBUG] About to publish event for visit:", visit.id)
+        publish_visit_booked_event(visit)
+        print("[DEBUG] Event publish call finished.")
 
-            print("[DEBUG] About to publish event for visit:", visit.id)
-            publish_visit_booked_event(visit)
-            print("[DEBUG] Event publish call finished.")
+        return Response({
+            "id": visit.id,
+            "doctor_id": visit.doctor.doctor_id,
+            "patient_id": visit.patient_id,
+            "time_slot": time_slot.id,
+            "status": visit.status,
+            "notes": visit.notes
+        }, status=status.HTTP_201_CREATED)
 
-            return Response({
-                "id": visit.id,
-                "doctor_id": visit.doctor.doctor_id,
-                "patient_id": visit.patient_id,
-                "time_slot": time_slot.id,
-                "status": visit.status,
-                "notes": visit.notes
-            }, status=status.HTTP_201_CREATED)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 
 @extend_schema(

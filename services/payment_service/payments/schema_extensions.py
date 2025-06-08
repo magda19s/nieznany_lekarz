@@ -1,7 +1,7 @@
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
 
 class CustomJWTAuthenticationScheme(OpenApiAuthenticationExtension):
-    target_class = 'visits.customJwt.SimpleJWTWithoutDBUser'
+    target_class = 'payments.customJwt.SimpleJWTWithoutDBUser'
     name = 'BearerAuth'
 
     def get_security_definition(self, auto_schema):

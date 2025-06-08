@@ -5,8 +5,8 @@ from rest_framework_simplejwt.views import TokenRefreshView
 
 urlpatterns = [
     path("auth/google", GoogleAuthView.as_view(), name="google-auth"),
-    path("auth/patient/<str:patient_id>", CheckPatientExistsView.as_view(), name="check-patient"),
-    path("auth/user/<str:user_id>", UserDetailView.as_view(), name="check-user"),
+    path("auth/patient", CheckPatientExistsView.as_view(), name="check-patient"),
+    path("auth/user", UserDetailView.as_view(), name="check-user"),
     path("auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
     
     # Swagger / OpenAPI
