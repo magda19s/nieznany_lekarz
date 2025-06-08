@@ -6,7 +6,7 @@ import django
 import os
 
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'visit_service.settings')  # zamień na nazwę swojego projektu
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'visit_service.settings')
 django.setup()
 
 def handle_doctor_register(ch, method, properties, body):

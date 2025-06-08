@@ -56,7 +56,7 @@ class PaymentStatusUpdateView(APIView):
                 )
 
             payment.status = new_status
-            # payment.updated_at = datetime.now(pytz.timezone('Europe/Warsaw')).strftime("%d.%m.%Y %H:%M:%S")
+            payment.updated_at = datetime.now(pytz.timezone('Europe/Warsaw'))
             print("Publishing payment:", payment.id)
 
             payment.save()
@@ -95,6 +95,7 @@ class StripeWebhookView(APIView):
                 return Response({"detail": "Payment not found"}, status=status.HTTP_404_NOT_FOUND)
 
             payment.status = 'paid'  # lub cokolwiek pasuje
+            payment.updated_at = datetime.now(pytz.timezone('Europe/Warsaw'))
             payment.save()
 
             publish_payment_event(payment)
