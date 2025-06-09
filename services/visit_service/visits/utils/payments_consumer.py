@@ -4,10 +4,24 @@ from django.utils.timezone import now
 from visits.models import Visit
 import django
 import os
+import requests
 
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'visit_service.settings')  # zamień na nazwę swojego projektu
 django.setup()
+
+def get_patient_email(patient_id):
+    url = f"http://user-service/api/patients/{patient_id}/email"  # przykładowy endpoint user-service
+    try:
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            return data.get("email")  # zakładam, że zwraca {"email": "pacjent@example.com"}
+        else:
+            print(f"[!] Failed to get email for patient {patient_id}: HTTP {response.status_code}")
+    except requests.RequestException as e:
+        print(f"[!] Exception while fetching email: {e}")
+    return None
 
 def handle_payment(ch, method, properties, body):
     data = json.loads(body)
