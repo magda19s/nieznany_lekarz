@@ -123,4 +123,38 @@ class UserDetailView(APIView):
             return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
         serializer = UserSerializer(user)
         return Response(serializer.data)
-    
+
+
+@extend_schema(
+    summary="Get user by ID",
+    description="Fetches a user by their ID and returns full user data (id, email, first_name, last_name, role).",
+    parameters=[
+        OpenApiParameter(
+            name='user_id',
+            description='ID of the user to retrieve',
+            required=True,
+            type=str,
+            location=OpenApiParameter.PATH
+        )
+    ],
+    responses={
+        200: UserSerializer,
+        404: {"detail": "Visit not found"}
+    }
+)
+class GetUserByIdView(generics.GenericAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+            data = {
+                "id": user.id,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "role": user.role
+            }
+            return Response(data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)

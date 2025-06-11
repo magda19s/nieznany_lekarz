@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from rest_framework import generics
 from .models import TimeSlot,Visit
-from .serializers import TimeSlotSerializer, VisitCreateSerializer, VisitSerializer, VisitNotesUpdateSerializer, VisitStatusUpdateSerializer
+from .serializers import TimeSlotSerializer, VisitCreateSerializer, VisitSerializer, VisitNotesUpdateSerializer, VisitStatusUpdateSerializer, PatientSerializer
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiTypes
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -15,6 +15,8 @@ from rest_framework.decorators import permission_classes
 import jwt
 from rest_framework.response import Response
 from rest_framework import status
+from drf_spectacular.utils import OpenApiResponse
+
 
 @extend_schema(
     summary="Retrieve available time slots",
@@ -228,6 +230,48 @@ class UpdateVisitStatusView(APIView):
 
         visit.save()
         return Response({"detail": f"Visit status updated to '{visit.status}'"}, status=status.HTTP_200_OK)
+    
+@extend_schema(
+    summary="Retrieve patient data from Auth Service",
+    description="Fetches patient details from the external Auth Service based on patient ID.",
+    parameters=[
+        OpenApiParameter(
+            name='patient_id',
+            description='UUID of the patient',
+            required=True,
+            type=str,
+            location=OpenApiParameter.PATH,
+        ),
+    ],
+    responses={
+        200: PatientSerializer,
+        404: {"detail": "Patient not found"},
+        401: {"detail": "Authorization header missing"},
+        503: {"detail": "Failed to contact auth service"},
+    }
+)
+class PatientRetrieveView(generics.GenericAPIView):
+    serializer_class = PatientSerializer
+
+    def get(self, request, patient_id):
+        auth_header = request.META.get("HTTP_AUTHORIZATION")
+        if not auth_header:
+            return Response({"detail": "Authorization header missing"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            url = f"{settings.AUTH_SERVICE_URL}/auth/patient/{patient_id}"
+            headers = {"Authorization": auth_header}
+            response = requests.get(url, headers=headers, timeout=5)
+
+            if response.status_code == 200:
+                return Response(response.json(), status=status.HTTP_200_OK)
+            elif response.status_code == 404:
+                return Response({"detail": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
+            else:
+                return Response({"detail": "Unexpected response from auth service"}, status=status.HTTP_502_BAD_GATEWAY)
+
+        except requests.RequestException as e:
+            return Response({"detail": "Failed to contact auth service", "error": str(e)}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
     

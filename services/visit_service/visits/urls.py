@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import TimeSlotListView, VisitCreateView, VisitByDoctorView, VisitByPatientView, UpdateVisitNotesView, UpdateVisitStatusView
+from .views import TimeSlotListView, VisitCreateView, VisitByDoctorView, VisitByPatientView, UpdateVisitNotesView, UpdateVisitStatusView,PatientRetrieveView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
@@ -9,6 +9,7 @@ urlpatterns = [
     path('visits/doctor/', VisitByDoctorView.as_view(), name='visit-doctor'),
     path('visits/<str:visit_id>/doctor/', UpdateVisitNotesView.as_view(), name='visit-doctor'),
     path('visits/<str:visit_id>/', UpdateVisitStatusView.as_view(), name='visit-payment'),
+    path('patient/<str:patient_id>/', PatientRetrieveView.as_view(), name='get-patient'),
 
       # Swagger / OpenAPI
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),

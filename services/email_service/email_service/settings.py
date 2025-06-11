@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 import os
 from pathlib import Path
+from datetime import timedelta
+from corsheaders.defaults import default_headers
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,6 +31,16 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+
+EMAIL_HOST_USER = 'student.integracja123@gmail.com'       # Twój Gmail
+EMAIL_HOST_PASSWORD = 'etkr xapy pxai ojdn'  # Hasło aplikacji z Gmaila (nie twoje zwykłe hasło!)
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+AUTH_SERVICE_URL = os.getenv("USER_SERVICE_URL", "http://auth-service:8000")
 
 # Application definition
 
@@ -37,6 +51,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'drf_spectacular',
+    'drf_yasg',
+    'requests',
+    'emails',
 ]
 
 MIDDLEWARE = [
@@ -125,8 +144,32 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.AllowAny',
+    ),
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Email Service API',
+    'DESCRIPTION': 'Dokumentacja Email Service',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_SETTINGS': {
+        'persistAuthorization': True,
+    },
+    'SECURITY': [{'BearerAuth': []}],      # musi zgadzać się z `name` w rozszerzeniu
+    'SECURITY_SCHEMES': {
+        'BearerAuth': {                    # nazwa taka sama jak powyżej
+            'type': 'http',
+            'scheme': 'bearer',
+            'bearerFormat': 'JWT',
+        }
+    },
 }

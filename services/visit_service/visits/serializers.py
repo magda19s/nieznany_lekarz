@@ -26,3 +26,10 @@ class VisitNotesUpdateSerializer(serializers.Serializer):
     notes = serializers.CharField()
 class VisitStatusUpdateSerializer(serializers.Serializer):
     status = serializers.CharField()
+
+class PatientSerializer(serializers.Serializer):
+    id = serializers.CharField()
+    email = serializers.EmailField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+    role = serializers.ChoiceField(choices=['doctor', 'patient'])
