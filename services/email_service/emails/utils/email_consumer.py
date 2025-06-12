@@ -5,8 +5,11 @@ import django
 import os
 from django.core.mail import send_mail
 import logging
+from emails.models import EmailLog
 
 logger = logging.getLogger(__name__)
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'email_service.settings')  # zamień na nazwę swojego projektu
+django.setup()
 
 def send_email_message(to, subject, message):
     """
@@ -17,7 +20,7 @@ def send_email_message(to, subject, message):
         send_mail(
             subject=subject,
             message=message,
-            from_email='twoj.email@gmail.com', 
+            from_email='student.integracja123@gmail.com', 
             recipient_list=[to],
             fail_silently=False,
         )
@@ -35,9 +38,24 @@ def callback(ch, method, properties, body):
 
         send_email_message(to_email, subject, message)
 
+        # Zapisz do bazy, że email został wysłany
+        EmailLog.objects.create(
+            to_email=to_email,
+            subject=subject,
+            message=message,
+            status='sent',
+        )
+
         ch.basic_ack(delivery_tag=method.delivery_tag)
         print(f"[✓] Email sent to {to_email}")
     except Exception as e:
+        EmailLog.objects.create(
+            to_email=to_email if 'to_email' in locals() else None,
+            subject=subject if 'subject' in locals() else None,
+            message=message if 'message' in locals() else None,
+            status='failed',
+        )
+
         print(f"[!] Failed to send email: {e}")
         ch.basic_nack(delivery_tag=method.delivery_tag, requeue=False)
 

@@ -14,14 +14,14 @@ class Email(models.Model):
     def __str__(self):
         return f"{self.sent_at} -> {self.to} [{self.status}]"
     
-# models.py
-from django.db import models
-
-class ReminderLog(models.Model):
-    visit_id = models.CharField(max_length=100, unique=True)
-    email = models.EmailField()
+class EmailLog(models.Model):
+    to_email = models.EmailField(null=True, blank=True)
+    subject = models.CharField(max_length=255)
+    message = models.TextField()
+    status = models.CharField(max_length=50)  # zwiększone max_length
+    error_message = models.TextField(null=True, blank=True)  # na dłuższe opisy błędów
     sent_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Reminder for visit {self.visit_id} sent to {self.email}"
+        return f"Email to {self.to_email} - {self.status}"
 
