@@ -1,7 +1,7 @@
 import json
 import pika
 from django.utils.timezone import now
-from visits.models import Visit
+from visits.models import Visit, TimeSlot, Doctor
 import django
 import os
 import requests
@@ -14,34 +14,32 @@ import requests
 from django.conf import settings
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.test import APIRequestFactory
+from visits.views import PatientRetrieveView 
+from decouple import config
 
-def get_patient_email_from_service(request, patient_id):
-    # Pobierz nagłówek autoryzacji z requesta
-    auth_header = request.META.get("HTTP_AUTHORIZATION")
-    if not auth_header:
-        return Response({"detail": "Authorization header missing"}, status=status.HTTP_401_UNAUTHORIZED)
-    
-    # Przygotuj URL do user service - przykładowy endpoint, dostosuj do swojego
-    url = f"{settings.USER_SERVICE_URL}/auth/patient"
 
+def get_patient_email_from_service(patient_id):
+
+    url = f"{settings.AUTH_SERVICE_URL}/auth/patient/{patient_id}"
     headers = {
-        "Authorization": auth_header
     }
+
+    print("[DEBUG] Sending auth request with headers:", headers)
 
     try:
         response = requests.get(url, headers=headers, timeout=5)
+        print("[DEBUG] Response status:", response.status_code)
+        print("[DEBUG] Response body:", response.text)
+
         if response.status_code == 200:
-            data = response.json()
-            email = data.get("email")
-            if not email:
-                return Response({"detail": "Email not found for patient"}, status=status.HTTP_404_NOT_FOUND)
-            return email  # zwracamy email jako string
-        elif response.status_code == 404:
-            return Response({"detail": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
+            return response.json()
         else:
-            return Response({"detail": "Failed to fetch email from user service"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
-    except requests.RequestException:
-        return Response({"detail": "Failed to contact user service"}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
+            print(f"[!] Auth service returned {response.status_code}: {response.text}")
+            return None
+    except requests.RequestException as e:
+        print(f"[!] Request to auth service failed: {e}")
+        return None
 
 def publish_email_event(email, subject, message):
     event = {
@@ -69,30 +67,52 @@ def handle_payment(ch, method, properties, body):
     visit_id = data['visitId']
     status_value = data['status']# domyślnie unpaid, jeśli brak
 
-    patient_id = visit.patient_id
+    visit = Visit.objects.get(id=visit_id)
+    patient_id = visit.patient_id 
 
         # Token serwisowy do kontaktu z auth
-    service_token = settings.INTERNAL_AUTH_TOKEN 
-    patient_email = get_patient_email_from_service(patient_id, service_token)
+    patient_response = get_patient_email_from_service(patient_id)
+    print("[DEBUG] Sending auth request with headers:", patient_response)
+    # if not patient_response or "email" not in patient_response:
+    #     print(f"[!] Could not fetch email for patient {patient_id}")
+    #     return
+    patient_email = patient_response.get("email")
+    # patient_name = patient_data.get("first_name")
+
     if not patient_email:
-            print(f"[!] Could not fetch email for patient {patient_id}")
-            return
+        patient_email = 'student.integracja123@gmail.com'
  
     try:
-        visit = Visit.objects.get(id=visit_id)
+        visit = Visit.objects.select_related('doctor', 'time_slot', 'time_slot__doctor').get(id=visit_id)
+
+        timeslot = visit.time_slot
+        doctor = visit.doctor
+
+        visit_date = timeslot.start.strftime("%d.%m.%Y")
+        visit_time = timeslot.start.strftime("%H:%M")
+        doctor_fullname = f"{doctor.first_name} {doctor.last_name}"
+        doctor_specialization = doctor.specialization
+
         if status_value == 'paid':
             visit.status = 'paid'
-            subject = "Płatność zakończona"
-            message = f"Twoja wizyta {visit.id} została opłacona."
-            #w tym miejscu będzie puszczany publish do email service
+            subject = "Payment completed"
+            message = (
+                f"Your appointment has been paid.\n"
+                f"Date: {visit_date}\n"
+                f"Time: {visit_time}\n"
+                f"Doctor: dr {doctor_fullname} ({doctor_specialization})"
+            )
         elif status_value == 'unpaid':
             visit.status = 'cancelled'
-            subject = "Płatność nieudana"
-            message = f"Twoja wizyta {visit.id} została anulowana z powodu braku płatności."
-                        #w tym miejscu będzie puszczany publish do email service
-
+            subject = "Payment failed"
+            message = (
+                f"Your appointment has been cancelled due to lack of payment.\n"
+                f"Date: {visit_date}\n"
+                f"Time: {visit_time}\n"
+                f"Doctor: dr {doctor_fullname} ({doctor_specialization})"
+            )
         else:
-            print(f"[!] Unknown payment status: {status_value}")
+            print(f"[!] Unknown status: {status_value}")
             return
 
         visit.save()

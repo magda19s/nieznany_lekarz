@@ -24,6 +24,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-2_8y88%34(_8006^0iv5iczh0hb8=8=ej=*dlsko^0z@-d&8=('
 
+INTERNAL_AUTH_TOKEN = os.getenv("INTERNAL_AUTH_TOKEN")
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -45,6 +47,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'requests',
     'corsheaders',
+    'django_celery_beat',
 ]
 
 MIDDLEWARE = [
@@ -178,6 +181,7 @@ SPECTACULAR_SETTINGS = {
 AUTH_SERVICE_URL = os.getenv("USER_SERVICE_URL", "http://auth-service:8000")
 PAYMENT_SERVICE_URL = os.getenv("PAYMENT_SERVICE_URL", "http://payment-service:8000")
 
+
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=120),  # domyślnie 5 minut, tu np. 60
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),     # np. 7 dni
@@ -185,3 +189,6 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': False,
 }
+
+CELERY_BROKER_URL = 'amqp://user:password@rabbitmq:5672//'
+CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'

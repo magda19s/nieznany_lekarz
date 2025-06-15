@@ -9,3 +9,6 @@ djangorestframework-simplejwt
 djangorestframework
 requests
 django-cors-headers==4.3.1
+python-decouple
+celery
+django-celery-beat

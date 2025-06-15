@@ -25,6 +25,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-2_8y88%34(_8006^0iv5iczh0hb8=8=ej=*dlsko^0z@-d&8=('
 
 SECURE_CROSS_ORIGIN_OPENER_POLICY = "same-origin-allow-popups"
+INTERNAL_AUTH_TOKEN = os.getenv("INTERNAL_AUTH_TOKEN", "Bearer fallback-token")
+
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

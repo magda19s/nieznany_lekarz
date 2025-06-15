@@ -12,7 +12,7 @@ from google.auth.transport import requests as google_requests
 from django.conf import settings
 from rest_framework_simplejwt.tokens import RefreshToken
 from .utils.doctor_publisher import publish_register_doctor_event
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,AllowAny
 
 @extend_schema(
     summary="Authenticate user with Google",
@@ -143,7 +143,7 @@ class UserDetailView(APIView):
     }
 )
 class GetUserByIdView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get(self, request, user_id):
         try:
@@ -158,3 +158,4 @@ class GetUserByIdView(generics.GenericAPIView):
             return Response(data, status=status.HTTP_200_OK)
         except User.DoesNotExist:
             return Response({"detail": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        
