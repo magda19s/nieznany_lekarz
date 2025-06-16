@@ -190,5 +190,5 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': False,
 }
 
-CELERY_BROKER_URL = 'amqp://user:password@rabbitmq:5672//'
+CELERY_BROKER_URL = f'amqp://guest:guest@{os.getenv("RABBITMQ_HOST", "rabbitmq")}:5672//'
 CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'

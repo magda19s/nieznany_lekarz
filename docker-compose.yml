@@ -99,8 +99,49 @@ services:
       DB_PASSWORD: postgres
       DB_HOST: visit-db
       AUTH_SERVICE_URL: http://auth-service:8000
+      RABBITMQ_HOST: rabbitmq
     depends_on:
       - visit-db
+    env_file:
+      - .env
+    volumes:
+      - ./services/visit_service:/app
+    networks:
+      - app-network
+
+  visit-celery-worker:
+    build:
+      context: ./services/visit_service
+    command: celery -A visit_service.celery worker --loglevel=info
+    depends_on:
+      - visit-db
+      - rabbitmq
+    environment:
+      DB_NAME: visit_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: visit-db
+      RABBITMQ_HOST: rabbitmq
+    env_file:
+      - .env
+    volumes:
+      - ./services/visit_service:/app
+    networks:
+      - app-network
+
+  visit-celery-beat:
+    build:
+      context: ./services/visit_service
+    command: celery -A visit_service.celery beat --loglevel=info
+    depends_on:
+      - visit-db
+      - rabbitmq
+    environment:
+      DB_NAME: visit_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: visit-db
+      RABBITMQ_HOST: rabbitmq
     env_file:
       - .env
     volumes:
