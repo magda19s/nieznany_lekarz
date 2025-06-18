@@ -23,5 +23,26 @@ echo "RabbitMQ is up!"
 echo "Starting Emails consumer..."
 python manage.py email_consumer &
 
+echo "Waiting for RabbitMQ to be available..."
+until nc -z rabbitmq 5672; do
+  echo "RabbitMQ is unavailable - sleeping"
+  sleep 2
+done
+echo "RabbitMQ is up!"
+
+echo "Starting Notification Emails consumer..."
+python manage.py notification_consumer &
+
+echo "Waiting for RabbitMQ to be available..."
+until nc -z rabbitmq 5672; do
+  echo "RabbitMQ is unavailable - sleeping"
+  sleep 2
+done
+echo "RabbitMQ is up!"
+
+echo "Starting Doctor Emails consumer..."
+python manage.py doctor_consumer &
+
+
 echo "Starting Django server..."
 exec "$@"
