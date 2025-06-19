@@ -10,6 +10,7 @@ from rest_framework import status
 import requests
 from django.conf import settings
 from .utils.rabbitmq_publisher import publish_visit_booked_event
+from .utils.notes_publisher import publish_visit_notes_event
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import permission_classes
 import jwt
@@ -186,7 +187,10 @@ class UpdateVisitNotesView(APIView):
                 return Response({"detail": "This doctor is not assigned to the visit."}, status=status.HTTP_403_FORBIDDEN)
 
             visit.notes = notes
+            publish_visit_notes_event(visit)
+
             visit.save()
+
             return Response(VisitSerializer(visit).data, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

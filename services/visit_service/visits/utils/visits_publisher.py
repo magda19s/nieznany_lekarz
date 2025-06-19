@@ -49,12 +49,13 @@ def send_visit_to_queue(visit_arg):
     doctor_fullname = f"{doctor.first_name} {doctor.last_name}"
     doctor_specialization = doctor.specialization
 
-    subject = "Payment completed"
+    subject = "Appointment notification"
     message = (
-                f"Your appointment has been paid.\n"
-                f"Date: {visit_date}\n"
-                f"Time: {visit_time}\n"
-                f"Doctor: dr {doctor_fullname} ({doctor_specialization})"
+        f"This is a reminder about your upcoming appointment.\n"
+        f"Date: {visit_date}\n"
+        f"Time: {visit_time}\n"
+        f"Doctor: Dr. {doctor_fullname} ({doctor_specialization})\n"
+        f"Please arrive at least 10 minutes early."
     )
 
     event = {
