@@ -4,24 +4,24 @@ import { loadStripe } from "@stripe/stripe-js";
 import { useQuery } from "@tanstack/react-query";
 import { PaymentsApi } from "@/api/PaymentsApi";
 import { useAtom } from "jotai";
-import { timeslotState } from "@/state/timeslot";
+import { visitState } from "@/state/visit";
 import { CircleAlert, Loader } from "lucide-react";
-import type { TimeSlot } from "@/types/TimeSlot";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import type { Visit } from "@/types/Visit";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_KEY);
 
 const Payment: FC = () => {
-    const [timeslot] = useAtom(timeslotState);
+    const [visit] = useAtom(visitState);
     
     const {
         data: secret,
         isError,
         isPending,
     } = useQuery({
-        queryKey: ["client-secret", { timeslot }],
+        queryKey: ["client-secret", { visitId: visit?.id }],
         queryFn: () =>
-            PaymentsApi.createCheckoutSession(timeslot as TimeSlot),
+            PaymentsApi.createCheckoutSession(visit as Visit),
         refetchOnWindowFocus: false,
     });
 

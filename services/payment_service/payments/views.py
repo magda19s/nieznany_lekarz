@@ -57,19 +57,19 @@ class StripeWebhookView(APIView):
 
         return Response({"status": "success"}, status=status.HTTP_200_OK)
 
-from .serializers import TimeSlotPayloadSerializer
+from .serializers import VisitPayloadSerializer
 
 @extend_schema(
     summary="Create Stripe Checkout Session",
     description="Creates a Stripe checkout session based on timeslot payload and doctor price.",
-    request=TimeSlotPayloadSerializer,
+    request=VisitPayloadSerializer,
     responses={200: dict, 400: {"detail": "Invalid input"}}
 )
 class CreateCheckoutSessionView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
         stripe.api_key = STRIPE_SECRET_KEY
-        serializer = TimeSlotPayloadSerializer(data=request.data)
+        serializer = VisitPayloadSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -82,16 +82,16 @@ class CreateCheckoutSessionView(APIView):
         if not user_id:
             return Response({"detail": "User ID not found in token"}, status=401)
         
-        timeslot = serializer.validated_data
-        doctor = timeslot["doctor"]
-        start_raw = timeslot['start']
-        start_dt = datetime.strptime(start_raw, "%Y-%m-%dT%H:%M:%SZ")
+        visit = serializer.validated_data
+        time_slot = visit["time_slot"]
+        doctor = visit["doctor"]
+        start_dt = time_slot['start']
         formatted_start = start_dt.strftime("%d %B %Y, %H:%M")
         price = float(doctor["amount"])
 
         metadata = {
             "user_id": user_id,
-            "timeslot_id": timeslot["id"],
+            "visit_id": visit["id"],
             "doctor_id": doctor["doctor_id"],
         }
 
@@ -147,10 +147,8 @@ class StripePaymentStatusView(APIView):
             session = stripe.checkout.Session.retrieve(session_id)
             status_value = session.get("payment_status")
             metadata = session.get("metadata", {})
-            visit_id = metadata.get("timeslot_id")
             return Response({
                 "status": status_value,
-                "visit_id": visit_id,
                 "metadata": metadata,
             }, status=200)
 

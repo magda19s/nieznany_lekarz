@@ -37,7 +37,7 @@ const Layout: FC = () => {
             setRole(data.user.role);
             setUser(data.user);
             localStorage.setItem("token", data.access_token);
-            localStorage.setItem("refresh", data.refresh); // ✅ zapisz refresh
+            localStorage.setItem("refresh", data.refresh);
         },
     });
 

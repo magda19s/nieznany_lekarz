@@ -1,8 +1,7 @@
-from django.shortcuts import render
 from rest_framework import generics
 from .models import TimeSlot,Visit
-from .serializers import TimeSlotSerializer, VisitCreateSerializer, VisitSerializer, VisitNotesUpdateSerializer, VisitStatusUpdateSerializer, PatientSerializer
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiParameter, OpenApiTypes
+from .serializers import TimeSlotSerializer, VisitSerializer, VisitNotesUpdateSerializer, VisitStatusUpdateSerializer, PatientSerializer
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework.views import APIView
 from rest_framework.response import Response
 import uuid
@@ -11,12 +10,10 @@ import requests
 from django.conf import settings
 from .utils.rabbitmq_publisher import publish_visit_booked_event
 from .utils.notes_publisher import publish_visit_notes_event
-from rest_framework.permissions import AllowAny
-from rest_framework.decorators import permission_classes
+
 import jwt
 from rest_framework.response import Response
 from rest_framework import status
-from drf_spectacular.utils import OpenApiResponse
 
 
 @extend_schema(
@@ -88,16 +85,7 @@ class VisitCreateView(generics.GenericAPIView):
         publish_visit_booked_event(visit)
         print("[DEBUG] Event publish call finished.")
 
-        return Response({
-            "id": visit.id,
-            "doctor_id": visit.doctor.doctor_id,
-            "patient_id": visit.patient_id,
-            "time_slot": time_slot.id,
-            "status": visit.status,
-            "notes": visit.notes
-        }, status=status.HTTP_201_CREATED)
-
-    
+        return Response(VisitSerializer(visit).data, status=status.HTTP_201_CREATED)
 
 @extend_schema(
     summary="Retrieve patient's visits",

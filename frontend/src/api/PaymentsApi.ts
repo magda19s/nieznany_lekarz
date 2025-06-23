@@ -1,5 +1,5 @@
-import type { ClientSecret } from "@/types/Payment";
-import type { TimeSlot } from "@/types/TimeSlot";
+import type { ClientSecret, PaymentStatus } from "@/types/Payment";
+import type { Visit } from "@/types/Visit";
 import axios from "axios";
 
 const AxiosPaymentsApi = axios.create({
@@ -8,8 +8,8 @@ const AxiosPaymentsApi = axios.create({
 });
 
 class PaymentsApi {
-  static async createCheckoutSession(timeslot: TimeSlot) {
-    const { data } = await AxiosPaymentsApi.post<ClientSecret>("/checkout/", timeslot);
+  static async createCheckoutSession(visit: Visit) {
+    const { data } = await AxiosPaymentsApi.post<ClientSecret>("/checkout/", visit);
     return data;
   }
   
