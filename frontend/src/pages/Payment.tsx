@@ -7,6 +7,7 @@ import { useAtom } from "jotai";
 import { timeslotState } from "@/state/timeslot";
 import { CircleAlert, Loader } from "lucide-react";
 import type { TimeSlot } from "@/types/TimeSlot";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_KEY);
 
@@ -15,7 +16,7 @@ const Payment: FC = () => {
     
     const {
         data: secret,
-        isError, error,
+        isError,
         isPending,
     } = useQuery({
         queryKey: ["client-secret", { timeslot }],
@@ -24,10 +25,9 @@ const Payment: FC = () => {
         refetchOnWindowFocus: false,
     });
 
-    console.log("Error", error)
     return (
-        <div className="flex h-full flex-col items-center justify-center">
-            <h1 className="my-6 text-center text-xl font-bold md:mt-10 md:text-3xl">Visit payment</h1>
+        <div className="flex h-full flex-col items-center justify-center relative -top-16">
+            <h1 className="text-center text-xl font-bold md:text-3xl mb-4">Visit payment</h1>
             <div className="flex w-full flex-col items-center justify-center">
                 {isPending ? (
                     <Loader className="animate-spin" />
@@ -40,14 +40,14 @@ const Payment: FC = () => {
                     </div>
                 ) : (
                     secret && (
-                        <div className="w-full">
+                        <ScrollArea className="w-full max-h-[600px]">
                             <EmbeddedCheckoutProvider
                                 stripe={stripePromise}
                                 options={{ clientSecret: secret.client_secret }}
                             >
                                 <EmbeddedCheckout />
                             </EmbeddedCheckoutProvider>
-                        </div>
+                        </ScrollArea>
                     )
                 )}
             </div>

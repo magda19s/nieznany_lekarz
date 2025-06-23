@@ -18,6 +18,7 @@ import { useMemo, useState, type FC } from 'react'
 import { useNavigate } from 'react-router-dom';
 
 const BookAService: FC = () => {
+    const navigate = useNavigate();
     const [role] = useAtom(roleState);
     const [, setTimeSlot] = useAtom(timeslotState);
     const { data: timeslots, isPending, isError } = useQuery({
@@ -25,9 +26,8 @@ const BookAService: FC = () => {
         queryFn: VisitsApi.getTimeSlots,
         enabled: ["patient", "pacjent"].includes(role)
     });
-    const navigate = useNavigate();
 
-    const [timeslot, setTimeslot] = useState<TimeSlot | null>(null);
+    const [timeslotCurr, setTimeslotCurr] = useState<TimeSlot | null>(null);
     const [doctor, setDoctor] = useState<Doctor | null>(null);
 
     const filteredTimeSlots = useMemo(() => {
@@ -67,7 +67,7 @@ const BookAService: FC = () => {
 
         return filteredTimeSlots.reduce((acc, slot) => {
             const date = new Date(slot.start);
-            const dayKey = formatDate(date); // np. "05.06.2025"
+            const dayKey = formatDate(date);
 
             if (!acc[dayKey]) {
                 acc[dayKey] = [];
@@ -78,8 +78,8 @@ const BookAService: FC = () => {
     }, [filteredTimeSlots]);
 
     const onPaymentClick = () => {
-        if (!timeslot) return;
-        setTimeSlot(timeslot);
+        if (!timeslotCurr) return;
+        setTimeSlot(timeslotCurr);
         navigate("/payment")
     };
 
@@ -90,14 +90,14 @@ const BookAService: FC = () => {
                 <span>Error loading available timeslots</span>
             </div> : <div className='flex gap-10'>
                 <div className='flex flex-col gap-3 w-[300px]'>
-                    <Card className={cn('px-6 flex flex-row items-center cursor-pointer hover:border-green-700 transition-all', doctor === null && "border-green-600 border-2")} onClick={() => setDoctor(null)}>
-                        <Avatar name={''} className='h-10 w-10' />
+                    <Card className={cn('px-6 flex flex-row items-center cursor-pointer hover:border-green-700 transition-all', doctor === null && "border-green-600")} onClick={() => setDoctor(null)}>
+                        <Avatar name='' className='h-10 w-10' />
                         <span className='text-lg'>
                             All specialists
                         </span>
                     </Card>
                     {availableDoctors.map(d =>
-                        <Card className={cn('px-6 flex flex-row items-center cursor-pointer hover:border-green-700 transition-all', doctor && doctor.doctor_id == d.doctor_id && "border-green-600 border-2")} onClick={() => setDoctor(d)}>
+                        <Card className={cn('px-6 flex flex-row items-center cursor-pointer hover:border-green-700 transition-all', doctor && doctor.doctor_id == d.doctor_id && "border-green-600")} onClick={() => setDoctor(d)}>
                             <Avatar name={`${d.first_name} ${d.last_name}`} bgColor={stringToColor(`${d.first_name} ${d.last_name}`)} className='h-10 w-10' />
                             <div className='flex flex-col'>
                                 <span className='text-lg'>
@@ -108,12 +108,10 @@ const BookAService: FC = () => {
                                     <Badge className='bg-green-900'>${d.amount}</Badge></div>
                             </div>
                         </Card>)}
-
                 </div>
-                <ScrollArea className='max-h-[600px] w-max flex-1'>
-                    <div className='flex flex-col gap-4'>
+                <ScrollArea className='max-h-[600px] w-max flex-1 shadow-sm p-8 h-[600px] flex flex-col rounded-lg border-border border'>
                         {Object.entries(groupedTimeSlots).map(([dayLabel, slots]) => {
-                            const date = new Date(slots[0].start); // zakładamy że wszystkie sloty w tej grupie mają ten sam dzień
+                            const date = new Date(slots[0].start);
 
                             return (
                                 <div key={dayLabel} className="mb-6">
@@ -125,7 +123,7 @@ const BookAService: FC = () => {
                                             const start = new Date(slot.start);
                                             const end = new Date(slot.end);
                                             return (
-                                                <Card key={slot.id} className={cn("px-4 py-2 text-sm flex flex-row items-center gap-2 cursor-pointer hover:border-green-700 transition-all", timeslot && timeslot.id === slot.id && "border-2 border-green-600")} onClick={() => setTimeslot(slot)}>
+                                                <Card key={slot.id} className={cn("px-4 py-2 text-sm flex flex-row items-center gap-2 cursor-pointer hover:border-green-700 transition-all", timeslotCurr && timeslotCurr.id === slot.id && "border-green-600")} onClick={() => setTimeslotCurr(slot)}>
                                                     <Avatar name={`${slot.doctor.first_name} ${slot.doctor.last_name}`} bgColor={stringToColor(`${slot.doctor.first_name} ${slot.doctor.last_name}`)} className='h-6 w-6 text-xs' />
                                                     {formatTime(start)} - {formatTime(end)}
                                                 </Card>
@@ -135,11 +133,9 @@ const BookAService: FC = () => {
                                 </div>
                             );
                         })}
-
-                    </div>
                 </ScrollArea>
             </div>}
-            {timeslot && <Card className='p-4 mt-auto'>
+            {timeslotCurr && <Card className='p-4 mt-auto'>
                 <Button className='ml-auto bg-emerald-600 hover:bg-emerald-700' onClick={onPaymentClick}>Go to payment</Button>
             </Card>
             }

@@ -18,7 +18,7 @@ def handle_doctor_register(ch, method, properties, body):
         first_name=data['first_name'],
         last_name=data['last_name'],
         specialization='Cardiologist',
-        amount=150
+        amount=200
     )
 
     

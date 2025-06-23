@@ -13,8 +13,8 @@ class AuthApi {
     return info;
   }
   
-  static async getInfo(credential: string) {
-    const { data: user } = await AxiosAuthApi.get<User>("/auth/user/", { credential });
+  static async getInfo() {
+    const { data: user } = await AxiosAuthApi.get<User>("/auth/user");
     return user;
   }
 }

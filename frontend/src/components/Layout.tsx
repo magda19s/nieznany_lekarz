@@ -3,7 +3,7 @@ import shape1 from "@/assets/shape1.png";
 import { Card } from "@/components/ui/card";
 import { Outlet, NavLink } from "react-router-dom";
 import { GoogleLogin, googleLogout } from "@react-oauth/google";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState, type FC } from "react";
 import { jwtDecode, type JwtPayload } from "jwt-decode";
 import { AxiosAuthApi, AuthApi } from "@/api/AuthApi";
 import { AxiosPaymentsApi } from "@/api/PaymentsApi";
@@ -17,7 +17,7 @@ import { useAtom } from "jotai";
 import { Button } from "./ui/button";
 import axios from "axios";
 
-function Layout() {
+const Layout: FC = () => {
     const navLinkClass = ({ isActive }: { isActive: boolean }) =>
         isActive ? "text-green-600 font-semibold" : "text-gray-700 hover:text-green-500";
     const [role, setRole] = useAtom(roleState);
@@ -42,8 +42,8 @@ function Layout() {
     });
 
     const { data: dataUser, isPending } = useQuery({
-        queryKey: ["user", userId],
-        queryFn: () => AuthApi.getInfo(userId),
+        queryKey: ["user", { userId }],
+        queryFn: () => AuthApi.getInfo(),
         enabled: !!token && !!userId,
         refetchOnMount: false,
         refetchOnWindowFocus: false
@@ -56,7 +56,7 @@ function Layout() {
         }
     }, [dataUser, setRole]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         const authInterceptor = AxiosAuthApi.interceptors.request.use(config => {
             if (token) {
                 config.headers.Authorization = `Bearer ${token}`;
@@ -85,7 +85,7 @@ function Layout() {
         };
     }, [token]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         const refreshToken = async (refresh: string) => {
             try {
                 const res = await axios.post("/auth/token/refresh/", { refresh });

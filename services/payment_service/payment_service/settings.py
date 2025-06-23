@@ -53,18 +53,18 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware'
+    'django.middleware.clickjacking.XFrameOptionsMiddleware'
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:8080",  # Vue/React dev server
+    "http://localhost:8080"
 ]
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
@@ -157,8 +157,8 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Visit Service API',
-    'DESCRIPTION': 'Dokumentacja Visit Service',
+    'TITLE': 'Payments Service API',
+    'DESCRIPTION': 'Dokumentacja Payments Service',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
     'SWAGGER_UI_SETTINGS': {

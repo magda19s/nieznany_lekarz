@@ -6,11 +6,12 @@ import ReactDOM from "react-dom/client";
 import React from "react";
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import BookAService from '@/pages/BookAService';
+import BookAService from '@/pages/BookService';
 import AboutUs from '@/pages/AboutUs';
 import Contact from '@/pages/Contact';
 import PrivateRoute from './PrivateRoute';
 import Payment from './pages/Payment';
+import PaymentStatus from './pages/PaymentStatus';
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,10 @@ const router = createBrowserRouter([
       {
         path: "",
         element: <HomePage />,
+      },
+      {
+        path: "/payment/redirect",
+        element: <PaymentStatus />,
       },
       {
         element: <PrivateRoute allowedRoles={["pacjent", "patient"]} />,

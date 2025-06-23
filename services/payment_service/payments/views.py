@@ -5,68 +5,23 @@ from rest_framework import status
 from datetime import datetime
 import pytz
 from .models import Payment
-from .serializers import CreateCheckoutSerializer, PaymentStatusUpdateSerializer, PaymentSerializer
 from .utils.rabbitmq_publisher import publish_payment_event
 import stripe
-from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from payments.models import Payment
-from payments.serializers import PaymentSerializer 
 from drf_spectacular.utils import extend_schema
-from decouple import config
 from rest_framework.permissions import IsAuthenticated
+import os
+from datetime import datetime
+import pytz
 
-STRIPE_SECRET_KEY = config("STRIPE_SECRET_KEY")
-FRONTEND_URL = config("FRONTEND_URL")
+utc = pytz.UTC
+local_tz = pytz.timezone("Europe/Warsaw")
 
-@extend_schema(
-    summary="Update payment status",
-    description="Changes status after info from stripe",
-    parameters=[
-        OpenApiParameter(
-            name='visit_id',
-            description='ID of the visit',
-            required=True,
-            type=str,
-            location=OpenApiParameter.PATH,
-        )
-    ],
-    request=PaymentStatusUpdateSerializer,
-    responses={
-        200: PaymentSerializer,
-        400: {"detail": "Invalid input"},
-        404: {"detail": "Payment not found for this visit"},
-    }
-)
-class PaymentStatusUpdateView(APIView):
-
-    def patch(self, request, visit_id):
-        serializer = PaymentStatusUpdateSerializer(data=request.data)
-        if serializer.is_valid():
-            new_status = serializer.validated_data['status']
-
-            try:
-                payment = Payment.objects.get(visit_id=visit_id)
-            except Payment.DoesNotExist:
-                return Response(
-                    {"detail": "Payment not found for this visit"},
-                    status=status.HTTP_404_NOT_FOUND
-                )
-
-            payment.status = new_status
-            payment.updated_at = datetime.now(pytz.timezone('Europe/Warsaw'))
-            print("Publishing payment:", payment.id)
-
-            payment.save()
-            print("Publishing payment:", payment.id)
-            publish_payment_event(payment)
-
-            return Response(PaymentSerializer(payment).data, status=status.HTTP_200_OK)
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
+FRONTEND_URL = os.environ.get("FRONTEND_URL")
 
 @extend_schema(exclude=True) 
 class StripeWebhookView(APIView):
@@ -77,7 +32,7 @@ class StripeWebhookView(APIView):
 
         try:
             event = stripe.Webhook.construct_event(
-                payload, sig_header, #webhook z env
+                payload, sig_header,
             )
         except (ValueError, stripe.error.SignatureVerificationError):
             return Response({"detail": "Invalid payload or signature"}, status=status.HTTP_400_BAD_REQUEST)
@@ -94,7 +49,7 @@ class StripeWebhookView(APIView):
             except Payment.DoesNotExist:
                 return Response({"detail": "Payment not found"}, status=status.HTTP_404_NOT_FOUND)
 
-            payment.status = 'paid'  # lub cokolwiek pasuje
+            payment.status = 'paid'
             payment.updated_at = datetime.now(pytz.timezone('Europe/Warsaw'))
             payment.save()
 
@@ -113,23 +68,26 @@ from .serializers import TimeSlotPayloadSerializer
 class CreateCheckoutSessionView(APIView):
     permission_classes = [IsAuthenticated]
     def post(self, request):
+        stripe.api_key = STRIPE_SECRET_KEY
         serializer = TimeSlotPayloadSerializer(data=request.data)
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        timeslot = serializer.validated_data
-        doctor = timeslot["doctor"]
-        price = float(doctor["amount"])  # from frontend
-
-        stripe.api_key = settings.STRIPE_SECRET_KEY
-        frontend_url = settings.FRONTEND_URL
-        if not frontend_url:
+        if not FRONTEND_URL:
             return Response({"detail": "Missing FRONTEND_URL in settings"}, status=500)
         
         user = request.user
         user_id = getattr(user, 'id', None)
+        
         if not user_id:
             return Response({"detail": "User ID not found in token"}, status=401)
+        
+        timeslot = serializer.validated_data
+        doctor = timeslot["doctor"]
+        start_raw = timeslot['start']
+        start_dt = datetime.strptime(start_raw, "%Y-%m-%dT%H:%M:%SZ")
+        formatted_start = start_dt.strftime("%d %B %Y, %H:%M")
+        price = float(doctor["amount"])
 
         metadata = {
             "user_id": user_id,
@@ -144,7 +102,8 @@ class CreateCheckoutSessionView(APIView):
                         "price_data": {
                             "currency": "pln",
                             "product_data": {
-                                "name": f"Wizyta: {doctor['first_name']} {doctor['last_name']}"
+                                "name": f"Payment for a visit in Nieznany Lekarz, {formatted_start}",
+                                "description": f"Doctor: {doctor['first_name']} {doctor['last_name']} ({doctor['specialization']})",
                             },
                             "unit_amount": int(price * 100),
                         },
@@ -153,7 +112,7 @@ class CreateCheckoutSessionView(APIView):
                 ],
                 mode="payment",
                 ui_mode="embedded",
-                return_url=f"{frontend_url}/redirect?session_id={{CHECKOUT_SESSION_ID}}",
+                return_url=f"{FRONTEND_URL}/payment/redirect?session_id={{CHECKOUT_SESSION_ID}}",
                 metadata=metadata,
                 payment_intent_data={"metadata": metadata},
             )
@@ -165,3 +124,35 @@ class CreateCheckoutSessionView(APIView):
                 {"detail": f"Stripe error: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+@extend_schema(
+    summary="Get payment status from Stripe session ID",
+    description="Fetches payment status based on session ID after redirect from Stripe.",
+    parameters=[
+        OpenApiParameter(
+            name='session_id',
+            description='Stripe Checkout session ID',
+            required=True,
+            type=str,
+            location=OpenApiParameter.PATH,
+        )
+    ],
+    responses={200: dict, 404: {"detail": "Session not found"}}
+)
+class StripePaymentStatusView(APIView):
+    def get(self, request, session_id):
+        stripe.api_key = STRIPE_SECRET_KEY
+
+        try:
+            session = stripe.checkout.Session.retrieve(session_id)
+            status_value = session.get("payment_status")
+            metadata = session.get("metadata", {})
+            visit_id = metadata.get("timeslot_id")
+            return Response({
+                "status": status_value,
+                "visit_id": visit_id,
+                "metadata": metadata,
+            }, status=200)
+
+        except stripe.error.InvalidRequestError:
+            return Response({"detail": "Session not found"}, status=404)
