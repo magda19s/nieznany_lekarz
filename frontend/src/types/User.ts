@@ -6,7 +6,7 @@ export interface User {
     "role": UserRole,
 };
 
-export type UserRole = "lekarz" | "pacjent" | "guest";
+export type UserRole = "doctor" | "patient" | "guest";
 
 export interface UserCreated {
     user: User,

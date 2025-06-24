@@ -12,5 +12,5 @@ class Payment(models.Model):
     updated_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
-        return f"{self.id} ({self.status})"
+        return f"{self.id} ({self.status}) (visit_id: {self.visit_id})"
 

@@ -16,6 +16,7 @@ import { CircleAlert, Loader, LogOut, User as UserIcon } from "lucide-react";
 import { useAtom } from "jotai";
 import { Button } from "./ui/button";
 import axios from "axios";
+import { Badge } from "./ui/badge";
 
 const Layout: FC = () => {
     const navLinkClass = ({ isActive }: { isActive: boolean }) =>
@@ -141,13 +142,14 @@ const Layout: FC = () => {
                         <p className="text-3xl font-bold text-teal-700">
                             Nieznany Lekarz
                         </p>
+                        {role === "doctor" && <Badge className="uppercase h-8 mt-2 text-base">Panel doktora</Badge>}
                     </div>
                     <nav className="hidden md:flex space-x-6 text-xl">
                         <NavLink to="/" className={navLinkClass}>Home</NavLink>
                         <NavLink to="/about-us" className={navLinkClass}>About Us</NavLink>
-                        {["pacjent", "patient"].includes(role) && <NavLink to="/new-service" className={navLinkClass}>Book a service</NavLink>}
-                        {["lekarz", "doctor"].includes(role) && <NavLink to="/my-services" className={navLinkClass}>My visits</NavLink>}
-                        {["lekarz", "doctor"].includes(role) && <NavLink to="/my-patients" className={navLinkClass}>My patients</NavLink>}
+                        {["patient"].includes(role) && <NavLink to="/new-service" className={navLinkClass}>Book a service</NavLink>}
+                        {["doctor"].includes(role) && <NavLink to="/my-services" className={navLinkClass}>My visits</NavLink>}
+                        {/* {["doctor"].includes(role) && <NavLink to="/my-patients" className={navLinkClass}>My patients</NavLink>} */}
                         <NavLink to="/contact" className={navLinkClass}>Contact</NavLink>
                     </nav>
                     <div className="flex gap-10">

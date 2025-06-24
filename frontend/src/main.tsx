@@ -12,6 +12,7 @@ import Contact from '@/pages/Contact';
 import PrivateRoute from './PrivateRoute';
 import Payment from './pages/Payment';
 import PaymentStatus from './pages/PaymentStatus';
+import Visits from './pages/Visits';
 
 const queryClient = new QueryClient();
 
@@ -29,7 +30,7 @@ const router = createBrowserRouter([
         element: <PaymentStatus />,
       },
       {
-        element: <PrivateRoute allowedRoles={["pacjent", "patient"]} />,
+        element: <PrivateRoute allowedRoles={["patient"]} />,
         children: [
           {
             path: "/new-service",
@@ -38,6 +39,15 @@ const router = createBrowserRouter([
           {
             path: "/payment",
             element: <Payment />,
+          },
+        ],
+      },
+      {
+        element: <PrivateRoute allowedRoles={["patient", "doctor"]} />,
+        children: [
+          {
+            path: "/my-services",
+            element: <Visits />,
           },
         ],
       },

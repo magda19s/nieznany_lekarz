@@ -25,3 +25,6 @@ class Visit(models.Model):
         ('paid', 'Paid')
     ])
     notes = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.id} ({self.status}) (time_slot: {self.time_slot.id})"

@@ -22,6 +22,7 @@ local_tz = pytz.timezone("Europe/Warsaw")
 
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
 FRONTEND_URL = os.environ.get("FRONTEND_URL")
+STRIPE_WEBHOOK_SECRET="whsec_eff02d15e4d1dba88074d740ebefdebba1b19f1e227d44ba8165018d0ee7fd1e"
 
 @extend_schema(exclude=True) 
 class StripeWebhookView(APIView):
@@ -29,10 +30,11 @@ class StripeWebhookView(APIView):
     def post(self, request):
         payload = request.body
         sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+        endpoint_secret = STRIPE_WEBHOOK_SECRET
 
         try:
             event = stripe.Webhook.construct_event(
-                payload, sig_header,
+                payload, sig_header, endpoint_secret
             )
         except (ValueError, stripe.error.SignatureVerificationError):
             return Response({"detail": "Invalid payload or signature"}, status=status.HTTP_400_BAD_REQUEST)
@@ -54,7 +56,9 @@ class StripeWebhookView(APIView):
             payment.save()
 
             publish_payment_event(payment)
-
+        else:
+            print(f"Unhandled event type {event['type']}")
+            
         return Response({"status": "success"}, status=status.HTTP_200_OK)
 
 from .serializers import VisitPayloadSerializer
